@@ -1,0 +1,3 @@
+/* Same as the Pico overlay: Pico 2 LED GP25 is PWM channel 4B (pinctrl pwm_ch4b_default in rpi_pico2.dtsi). */
+/ { pwm_leds { status = "okay"; }; };
+&pwm { status = "okay"; divider-int-4 = <255>; };

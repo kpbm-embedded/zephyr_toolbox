@@ -1,0 +1,7 @@
+name        = "blink"
+sdk         = "zephyr"
+description = "Blink led0 at 1 Hz using the devicetree led0 alias"
+targets     = ["blackpill_f411ce", "weact_g431", "weact_h562", "weact_h743", "rpi_pico", "rpi_pico2", "promicro_nrf52840", "esp32c3"]
+hardware    = "led0 alias: BlackPill PC13 (low), G431 PC6, H562 PB2, H743 PE3, Pico GP25, Pico 2 GP25, Pro Micro nRF52840 P0.15, ESP32-C3 SuperMini GPIO8 (UNVERIFIED)"
+features    = ["gpio", "devicetree-alias"]
+status      = "builds; untested on hardware"

@@ -1,0 +1,9 @@
+# scripts/app ztest <module dir> [board]
+tests:
+  module.__name__.tally:
+    tags: [ztest, driver, module]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

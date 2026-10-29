@@ -1,0 +1,10 @@
+# twister: scripts/app ztest sensor-emul [board]
+common:
+  tags: [ztest, sensor, emul, i2c]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.sensor.emul: {}

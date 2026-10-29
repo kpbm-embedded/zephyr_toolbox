@@ -1,0 +1,6 @@
+board:
+  name: mangopi_mq_r
+  full_name: MangoPi MQ-R (T113-S3)
+  vendor: widora
+  socs:
+  - name: sun8i_t113

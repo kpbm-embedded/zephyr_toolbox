@@ -1,0 +1,10 @@
+identifier: k210_generic
+name: Kendryte K210 generic (Maix Bit/Dock/Go class)
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 6144
+supported:
+  - uart
+vendor: canaan

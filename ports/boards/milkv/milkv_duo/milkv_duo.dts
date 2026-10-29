@@ -1,0 +1,49 @@
+/*
+ * Milk-V Duo 64M (CV1800B), little C906 core - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <riscv/sophgo/cv18xx.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Milk-V Duo 64M (CV1800B), little C906 core";
+	compatible = "milkv,duo", "sophgo,cv1800b";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram;
+	};
+
+	aliases {
+		led0 = &led0;
+	};
+
+	sram: memory@83f40000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x83f40000 DT_SIZE_K(768)>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led_0 {
+			gpios = <&gpioc 24 GPIO_ACTIVE_HIGH>;
+			label = "GPIOC24 blue LED";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&gpioc {
+	status = "okay";
+};
+

@@ -1,0 +1,6 @@
+board:
+  name: milkv_duo
+  full_name: Milk-V Duo 64M (CV1800B), little C906 core
+  vendor: milkv
+  socs:
+  - name: cv1800b

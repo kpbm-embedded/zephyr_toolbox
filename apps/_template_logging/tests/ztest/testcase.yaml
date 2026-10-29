@@ -1,0 +1,13 @@
+# scripts/app ztest <app> [board]   (two variants: module level INF, and DBG)
+common:
+  tags: [ztest, logging]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  app.__name__.core.inf: {}
+  app.__name__.core.dbg:
+    extra_configs:
+      - CONFIG_APP_CORE_LOG_LEVEL_DBG=y

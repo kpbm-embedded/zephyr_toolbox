@@ -1,0 +1,10 @@
+# twister: scripts/app ztest zbus-pubsub [board]
+common:
+  tags: [ztest, zbus]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.zbus.pubsub: {}

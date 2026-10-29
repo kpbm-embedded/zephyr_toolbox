@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]   (qemu boards: simulated flash + fstab from boards/qemu_*.overlay)
+tests:
+  app.__name__.datalog:
+    tags: [ztest, littlefs, filesystem]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

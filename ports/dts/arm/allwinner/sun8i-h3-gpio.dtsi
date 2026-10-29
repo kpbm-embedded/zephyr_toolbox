@@ -1,0 +1,85 @@
+/*
+ * GPIO banks for the Allwinner H3 (sun8i-h3.dtsi in Zephyr v4.4 has none).
+ * PIO at 0x01c20800, banks 0x24 apart; bank IRQs: PA = SPI 11, PG = SPI 17
+ * (facts from Linux sunxi-h3-h5.dtsi). Driver: allwinner,sunxi-gpio.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+&{/soc} {
+	gpioa: gpio@1c20800 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c20800 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpiob: gpio@1c20824 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c20824 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		/* no external interrupts on this bank */
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpioc: gpio@1c20848 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c20848 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		/* no external interrupts on this bank */
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpiod: gpio@1c2086c {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c2086c 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		/* no external interrupts on this bank */
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpioe: gpio@1c20890 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c20890 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		/* no external interrupts on this bank */
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpiof: gpio@1c208b4 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c208b4 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		/* no external interrupts on this bank */
+		allwinner,hw-bank = <0>;
+		status = "disabled";
+	};
+
+	gpiog: gpio@1c208d8 {
+		compatible = "allwinner,sun8i-h3-gpio", "allwinner,sunxi-gpio";
+		reg = <0x1c208d8 0x24>, <0x01c20800 0x400>;
+		reg-names = "reg_base", "pio_base";
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupts = <GIC_SPI 17 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+		allwinner,hw-bank = <1>;
+		status = "disabled";
+	};
+
+};

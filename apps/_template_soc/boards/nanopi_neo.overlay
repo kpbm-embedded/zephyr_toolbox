@@ -1,0 +1,4 @@
+/* Example: enable bank PG (e.g. for a button on PG11) in addition to PA (led0). */
+&gpiog {
+	status = "okay";
+};

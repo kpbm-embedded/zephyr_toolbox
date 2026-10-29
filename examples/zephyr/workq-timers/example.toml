@@ -1,0 +1,7 @@
+name        = "workq-timers"
+sdk         = "zephyr"
+description = "Work queues and timers: system vs own work queue, delayable work as a button debouncer (reschedule, cancel), periodic and one-shot k_timer; ztest"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); timing checks have +-1 tick slack"
+features    = ["kernel", "workqueue", "timer", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+description: "Allwinner sun8i-h3 GPIO bank, driver allwinner,sunxi-gpio"
+
+compatible: "allwinner,sun8i-h3-gpio"
+
+include: allwinner,sunxi-gpio.yaml

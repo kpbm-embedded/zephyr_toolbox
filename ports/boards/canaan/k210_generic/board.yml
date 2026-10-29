@@ -1,0 +1,6 @@
+board:
+  name: k210_generic
+  full_name: Kendryte K210 generic (Maix Bit/Dock/Go class)
+  vendor: canaan
+  socs:
+  - name: k210

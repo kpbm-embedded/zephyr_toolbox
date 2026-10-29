@@ -1,0 +1,7 @@
+name        = "i2c-scan"
+sdk         = "zephyr"
+description = "Scan the I2C bus for devices every 5 s (zero-length write probe)"
+targets     = ["blackpill_f411ce", "rpi_pico", "rpi_pico2", "promicro_nrf52840", "esp32c3", "esp32s3"]
+hardware    = "Bus chosen by the zephyr,user i2c-bus overlay property; pins from each board DTS pinctrl (see README)"
+features    = ["i2c"]
+status      = "builds; untested on hardware"

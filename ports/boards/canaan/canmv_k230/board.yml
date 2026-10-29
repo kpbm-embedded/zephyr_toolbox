@@ -1,0 +1,6 @@
+board:
+  name: canmv_k230
+  full_name: CanMV-K230 class boards (K230, 01Studio/Canaan), CPU0
+  vendor: canaan
+  socs:
+  - name: k230

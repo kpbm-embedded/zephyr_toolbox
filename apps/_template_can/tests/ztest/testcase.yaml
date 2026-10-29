@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]   (qemu boards: loopback CAN controller from boards/qemu_*.overlay)
+tests:
+  app.__name__.canio:
+    tags: [ztest, can]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

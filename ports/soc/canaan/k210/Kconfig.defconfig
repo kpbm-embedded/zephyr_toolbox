@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+if SOC_SERIES_K210
+
+# CLINT mtime = CPU clock / 50; the boot ROM leaves the CPU at 390 MHz (Linux k210.dtsi timebase 7.8 MHz)
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 7800000
+
+config RISCV_SOC_INTERRUPT_INIT
+	default y
+
+config 2ND_LVL_ISR_TBL_OFFSET
+	default 12
+
+config 2ND_LVL_INTR_00_OFFSET
+	default 11
+
+config MAX_IRQ_PER_AGGREGATOR
+	default 66
+
+config NUM_IRQS
+	default 80
+
+config XIP
+	default n
+
+# K210 implements privileged spec 1.9.1: no PMP CSRs
+config RISCV_PMP
+	default n
+
+endif

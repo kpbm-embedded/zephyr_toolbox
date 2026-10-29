@@ -1,0 +1,124 @@
+/*
+ * Sophgo CV1800B / SG2002 ("CV18xx"): the little T-Head C906 core (700 MHz, no MMU used),
+ * which the vendor SDK runs FreeRTOS on while Linux runs on the big C906.
+ * Based on the unmerged Zephyr PR #69594 (Copyright (c) 2023-2024 Chen Xingyu, Apache-2.0):
+ * PLIC 0x70000000, CLINT mtimecmp 0x74004000 (mtime via time CSR, 25 MHz),
+ * DesignWare GPIO 0x03020000 + n*0x1000 and PWR_GPIO 0x05021000,
+ * 16550 UARTs 0x04140000.. (25 MHz). Pinmux is not handled (no pinctrl driver):
+ * use pins whose reset/boot-loader function is already the wanted one.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "thead,c906", "riscv";
+			device_type = "cpu";
+			reg = <0>;
+			clock-frequency = <DT_FREQ_M(700)>;
+			mmu-type = "riscv,none";
+			riscv,isa-base = "rv64i";
+			riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "zicsr", "zifencei";
+
+			hlic: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
+		};
+	};
+
+	soc {
+		compatible = "sophgo,cv18xx", "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		interrupt-parent = <&plic0>;
+		ranges;
+
+		plic0: interrupt-controller@70000000 {
+			compatible = "sifive,plic-1.0.0";
+			reg = <0x70000000 0x4000000>;
+			interrupts-extended = <&hlic 11>;
+			interrupt-controller;
+			riscv,max-priority = <7>;
+			riscv,ndev = <101>;
+			#address-cells = <0>;
+			#interrupt-cells = <2>;
+		};
+
+		mtimer: timer@74004000 {
+			compatible = "thead,c900-clint-mtimer";
+			reg = <0x74004000 0x8>;
+			reg-names = "mtimecmp";
+			interrupts-extended = <&hlic 7>;
+		};
+
+		gpioa: gpio@3020000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x3020000 DT_SIZE_K(4)>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		gpiob: gpio@3021000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x3021000 DT_SIZE_K(4)>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		gpioc: gpio@3022000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x3022000 DT_SIZE_K(4)>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		gpiod: gpio@3023000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x3023000 DT_SIZE_K(4)>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		pwr_gpio: gpio@5021000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x5021000 DT_SIZE_K(4)>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		uart0: uart@4140000 {
+			compatible = "ns16550";
+			reg = <0x4140000 DT_SIZE_K(64)>;
+			interrupts = <30 1>;
+			reg-shift = <2>;
+			clock-frequency = <DT_FREQ_M(25)>;
+			status = "disabled";
+		};
+
+		uart1: uart@4150000 {
+			compatible = "ns16550";
+			reg = <0x4150000 DT_SIZE_K(64)>;
+			interrupts = <31 1>;
+			reg-shift = <2>;
+			clock-frequency = <DT_FREQ_M(25)>;
+			status = "disabled";
+		};
+	};
+};

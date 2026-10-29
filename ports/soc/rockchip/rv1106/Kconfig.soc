@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SERIES_RV1106
+	bool
+
+config SOC_RV1106
+	bool
+	select SOC_SERIES_RV1106
+
+config SOC_SERIES
+	default "rv1106" if SOC_SERIES_RV1106
+
+config SOC
+	default "rv1106" if SOC_RV1106

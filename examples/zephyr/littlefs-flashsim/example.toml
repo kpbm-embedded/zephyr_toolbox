@@ -1,0 +1,7 @@
+name        = "littlefs-flashsim"
+sdk         = "zephyr"
+description = "LittleFS on a simulated flash partition, mounted from a devicetree fstab entry: write/read/append, dirs, rename, unlink, multi-block files, unmount/remount; ztest"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu, flash simulator); on a board point the fstab partition at real flash"
+features    = ["littlefs", "filesystem", "flash", "devicetree", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

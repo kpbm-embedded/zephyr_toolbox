@@ -1,0 +1,6 @@
+# Vendor prefixes used by the 32_03_zephyr ports/ module (not in Zephyr v4.4)
+luckfox	Shenzhen Luckfox Technology Co., Ltd.
+milkv	MilkV Technology Co., Ltd
+sophgo	Sophgo Technology Inc.
+thead	T-Head Semiconductor Co., Ltd.
+widora	WIDORA

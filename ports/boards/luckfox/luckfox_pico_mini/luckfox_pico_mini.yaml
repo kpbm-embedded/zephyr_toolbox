@@ -1,0 +1,11 @@
+identifier: luckfox_pico_mini
+name: Luckfox Pico Mini A/B (RV1103)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 65536
+supported:
+  - uart
+  - gpio
+vendor: luckfox

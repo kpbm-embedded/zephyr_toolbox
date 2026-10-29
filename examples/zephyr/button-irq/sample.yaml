@@ -1,0 +1,9 @@
+# twister entries for the application-SoC boards (32_03_zephyr BOARDS.md); MCU targets: example.toml
+sample:
+  name: button-irq
+tests:
+  soc_ports.button-irq:
+    build_only: true
+    tags: soc_ports
+    platform_allow:
+      - stm32mp135f_dk

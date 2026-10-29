@@ -1,0 +1,11 @@
+identifier: mangopi_mq_r
+name: MangoPi MQ-R (T113-S3)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 131072
+supported:
+  - uart
+  - gpio
+vendor: widora

@@ -1,0 +1,2 @@
+/* I2C0 per rpi_pico2-pinctrl.dtsi (i2c0_default) */
+/ { zephyr,user { i2c-bus = <&i2c0>; }; };

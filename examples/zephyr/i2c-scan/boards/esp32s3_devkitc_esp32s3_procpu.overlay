@@ -1,0 +1,3 @@
+/* I2C0 per esp32s3_devkitc-pinctrl.dtsi (i2c0_default) */
+/ { zephyr,user { i2c-bus = <&i2c0>; }; };
+&i2c0 { status = "okay"; };

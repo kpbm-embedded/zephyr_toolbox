@@ -1,0 +1,17 @@
+[package]
+name = "zffi"
+version = "0.1.0"
+edition = "2021"
+description = "no_std Rust functions with a C ABI for a Zephyr app"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+overflow-checks = true
+debug = true

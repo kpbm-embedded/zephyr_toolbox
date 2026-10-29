@@ -1,0 +1,7 @@
+name        = "rust-app"
+sdk         = "zephyr"
+description = "Rust app on Zephyr (zephyr-lang-rust): rust_main, a #[zephyr::thread] worker, bounded channels, printkln; twister console harness"
+targets     = ["qemu_cortex_m3"]
+hardware    = "none (qemu_cortex_m3); needs 32_17_embedded_rust (Rust toolchain) and setup step rust; exit 3 (skip) when missing"
+features    = ["rust", "twister"]
+status      = "passes on qemu_cortex_m3 (scripts/app ztest)"

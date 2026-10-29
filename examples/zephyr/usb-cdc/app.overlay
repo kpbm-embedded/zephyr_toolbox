@@ -1,0 +1,6 @@
+/* From zephyr samples/subsys/usb/cdc_acm/app.overlay: add a CDC ACM UART on the board's zephyr_udc0. */
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};

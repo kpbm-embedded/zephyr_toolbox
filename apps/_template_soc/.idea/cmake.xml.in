@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" GENERATION_DIR="@ZEPHYR_OUT@/apps/_template_soc/cmake-build-debug" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Default" GENERATION_OPTIONS="-G Ninja -DCMAKE_MAKE_PROGRAM=@ID_ROOT@/toolchain/host/bin/ninja -DBOARD=nanopi_neo -DPython3_EXECUTABLE=@ID_ROOT@/toolchain/zephyr/.venv/bin/python -DCONFIG_DEBUG_OPTIMIZATIONS=y" BUILD_OPTIONS="-j 16">
+        <ADDITIONAL_GENERATION_ENVIRONMENT>
+          <envs>
+            <env name="GIT_SSL_CAINFO" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="GIT_SSL_CAPATH" value="/etc/ssl/certs" />
+            <env name="MCU_HOST" value="@ID_ROOT@/toolchain/host" />
+            <env name="MCU_HOST_ACTIVE" value="1" />
+            <env name="OPENSSL_CONF" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ssl-3/openssl.cnf" />
+            <env name="OPENSSL_ENGINES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/engines-3" />
+            <env name="OPENSSL_MODULES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ossl-modules/" />
+            <env name="PATH" value="@ID_ROOT@/toolchain/zephyr/sdk/zephyr-sdk/hosttools/sysroots/x86_64-pokysdk-linux/usr/bin:@ID_ROOT@/toolchain/zephyr/.venv/bin:@ID_ROOT@/toolchain/host/bin:@ID_ROOT@/toolchain/host/cmake/bin:@ID_ROOT@/toolchain/host/python/cpython-3.12-linux-x86_64-gnu/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/sbin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/sbin:@ID_ROOT@/toolchain/host/sysbin" />
+            <env name="PIP_DISABLE_PIP_VERSION_CHECK" value="1" />
+            <env name="PKG_CONFIG_LIBDIR" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/lib/pkgconfig:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig" />
+            <env name="PYTHONHOME" value="" />
+            <env name="PYTHONPATH" value="" />
+            <env name="SSL_CERT_DIR" value="/etc/ssl/certs" />
+            <env name="SSL_CERT_FILE" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="UV_CACHE_DIR" value="@ID_ROOT@/toolchain/host/.uv-cache" />
+            <env name="UV_PYTHON_INSTALL_BIN" value="0" />
+            <env name="UV_PYTHON_INSTALL_DIR" value="@ID_ROOT@/toolchain/zephyr/python" />
+            <env name="UV_PYTHON_PREFERENCE" value="only-managed" />
+            <env name="UV_TOOL_BIN_DIR" value="@ID_ROOT@/toolchain/host/bin" />
+            <env name="UV_TOOL_DIR" value="@ID_ROOT@/toolchain/host/uv-tools" />
+            <env name="VIRTUAL_ENV" value="@ID_ROOT@/toolchain/zephyr/.venv" />
+            <env name="ZEPHYR_BASE" value="@ID_ROOT@/toolchain/zephyr/ws/zephyr" />
+            <env name="ZEPHYR_ROOT" value="@ID_ROOT@/toolchain/zephyr" />
+            <env name="ZEPHYR_SDK_INSTALL_DIR" value="@ID_ROOT@/toolchain/zephyr/sdk/zephyr-sdk" />
+            <env name="ZEPHYR_TOOLCHAIN_VARIANT" value="zephyr" />
+          </envs>
+        </ADDITIONAL_GENERATION_ENVIRONMENT>
+      </configuration>
+      <configuration PROFILE_NAME="Release" ENABLED="true" GENERATION_DIR="@ZEPHYR_OUT@/apps/_template_soc/cmake-build-release" CONFIG_NAME="Release" TOOLCHAIN_NAME="Default" GENERATION_OPTIONS="-G Ninja -DCMAKE_MAKE_PROGRAM=@ID_ROOT@/toolchain/host/bin/ninja -DBOARD=nanopi_neo -DPython3_EXECUTABLE=@ID_ROOT@/toolchain/zephyr/.venv/bin/python" BUILD_OPTIONS="-j 16">
+        <ADDITIONAL_GENERATION_ENVIRONMENT>
+          <envs>
+            <env name="GIT_SSL_CAINFO" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="GIT_SSL_CAPATH" value="/etc/ssl/certs" />
+            <env name="MCU_HOST" value="@ID_ROOT@/toolchain/host" />
+            <env name="MCU_HOST_ACTIVE" value="1" />
+            <env name="OPENSSL_CONF" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ssl-3/openssl.cnf" />
+            <env name="OPENSSL_ENGINES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/engines-3" />
+            <env name="OPENSSL_MODULES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ossl-modules/" />
+            <env name="PATH" value="@ID_ROOT@/toolchain/zephyr/sdk/zephyr-sdk/hosttools/sysroots/x86_64-pokysdk-linux/usr/bin:@ID_ROOT@/toolchain/zephyr/.venv/bin:@ID_ROOT@/toolchain/host/bin:@ID_ROOT@/toolchain/host/cmake/bin:@ID_ROOT@/toolchain/host/python/cpython-3.12-linux-x86_64-gnu/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/sbin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/sbin:@ID_ROOT@/toolchain/host/sysbin" />
+            <env name="PIP_DISABLE_PIP_VERSION_CHECK" value="1" />
+            <env name="PKG_CONFIG_LIBDIR" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/lib/pkgconfig:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig" />
+            <env name="PYTHONHOME" value="" />
+            <env name="PYTHONPATH" value="" />
+            <env name="SSL_CERT_DIR" value="/etc/ssl/certs" />
+            <env name="SSL_CERT_FILE" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="UV_CACHE_DIR" value="@ID_ROOT@/toolchain/host/.uv-cache" />
+            <env name="UV_PYTHON_INSTALL_BIN" value="0" />
+            <env name="UV_PYTHON_INSTALL_DIR" value="@ID_ROOT@/toolchain/zephyr/python" />
+            <env name="UV_PYTHON_PREFERENCE" value="only-managed" />
+            <env name="UV_TOOL_BIN_DIR" value="@ID_ROOT@/toolchain/host/bin" />
+            <env name="UV_TOOL_DIR" value="@ID_ROOT@/toolchain/host/uv-tools" />
+            <env name="VIRTUAL_ENV" value="@ID_ROOT@/toolchain/zephyr/.venv" />
+            <env name="ZEPHYR_BASE" value="@ID_ROOT@/toolchain/zephyr/ws/zephyr" />
+            <env name="ZEPHYR_ROOT" value="@ID_ROOT@/toolchain/zephyr" />
+            <env name="ZEPHYR_SDK_INSTALL_DIR" value="@ID_ROOT@/toolchain/zephyr/sdk/zephyr-sdk" />
+            <env name="ZEPHYR_TOOLCHAIN_VARIANT" value="zephyr" />
+          </envs>
+        </ADDITIONAL_GENERATION_ENVIRONMENT>
+      </configuration>
+      <configuration PROFILE_NAME="Host-Tests" ENABLED="true" GENERATION_DIR="@ZEPHYR_OUT@/apps/_template_soc/cmake-build-host-tests" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Default" GENERATION_OPTIONS="-G Ninja -DCMAKE_MAKE_PROGRAM=@ID_ROOT@/toolchain/host/bin/ninja -DMCU_HOST_TESTS=ON -DCMAKE_C_COMPILER=@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin/gcc -DCMAKE_CXX_COMPILER=@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin/g++" BUILD_OPTIONS="-j 16">
+        <ADDITIONAL_GENERATION_ENVIRONMENT>
+          <envs>
+            <env name="GIT_SSL_CAINFO" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="GIT_SSL_CAPATH" value="/etc/ssl/certs" />
+            <env name="MCU_HOST" value="@ID_ROOT@/toolchain/host" />
+            <env name="MCU_HOST_ACTIVE" value="1" />
+            <env name="OPENSSL_CONF" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ssl-3/openssl.cnf" />
+            <env name="OPENSSL_ENGINES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/engines-3" />
+            <env name="OPENSSL_MODULES" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/lib/ossl-modules/" />
+            <env name="PATH" value="@ID_ROOT@/toolchain/host/bin:@ID_ROOT@/toolchain/host/cmake/bin:@ID_ROOT@/toolchain/host/python/cpython-3.12-linux-x86_64-gnu/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/usr/sbin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/bin:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux/sbin:@ID_ROOT@/toolchain/host/sysbin" />
+            <env name="PIP_DISABLE_PIP_VERSION_CHECK" value="1" />
+            <env name="PKG_CONFIG_LIBDIR" value="@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/lib/pkgconfig:@ID_ROOT@/toolchain/host/buildtools/sysroots/x86_64-pokysdk-linux//usr/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig" />
+            <env name="PYTHONHOME" value="" />
+            <env name="PYTHONPATH" value="" />
+            <env name="SSL_CERT_DIR" value="/etc/ssl/certs" />
+            <env name="SSL_CERT_FILE" value="/etc/ssl/certs/ca-certificates.crt" />
+            <env name="UV_CACHE_DIR" value="@ID_ROOT@/toolchain/host/.uv-cache" />
+            <env name="UV_PYTHON_INSTALL_BIN" value="0" />
+            <env name="UV_PYTHON_INSTALL_DIR" value="@ID_ROOT@/toolchain/host/python" />
+            <env name="UV_PYTHON_PREFERENCE" value="only-managed" />
+            <env name="UV_TOOL_BIN_DIR" value="@ID_ROOT@/toolchain/host/bin" />
+            <env name="UV_TOOL_DIR" value="@ID_ROOT@/toolchain/host/uv-tools" />
+          </envs>
+        </ADDITIONAL_GENERATION_ENVIRONMENT>
+      </configuration>
+    </configurations>
+  </component>
+</project>

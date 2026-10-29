@@ -1,0 +1,7 @@
+name        = "shell"
+sdk         = "zephyr"
+description = "Zephyr shell on the console UART with kernel/device commands and a custom 'demo' command"
+targets     = ["blackpill_f411ce", "weact_g431", "rpi_pico2", "promicro_nrf52840", "esp32c3"]
+hardware    = "zephyr,shell-uart per board DTS (same pins as the console)"
+features    = ["shell", "uart"]
+status      = "builds; untested on hardware"

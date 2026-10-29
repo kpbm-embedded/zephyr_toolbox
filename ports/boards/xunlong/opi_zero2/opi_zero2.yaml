@@ -1,0 +1,11 @@
+identifier: opi_zero2
+name: Orange Pi Zero2 (H616) / H616-H618 core boards
+type: mcu
+arch: arm64
+toolchain:
+  - zephyr
+ram: 524288
+supported:
+  - uart
+  - gpio
+vendor: xunlong

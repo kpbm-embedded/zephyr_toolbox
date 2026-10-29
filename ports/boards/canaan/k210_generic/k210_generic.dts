@@ -1,0 +1,26 @@
+/*
+ * Kendryte K210 generic (Maix Bit/Dock/Go class) - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <riscv/canaan/k210.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Kendryte K210 generic (Maix Bit/Dock/Go class)";
+	compatible = "canaan,kendryte-k210";
+
+	chosen {
+		zephyr,console = &uarths0;
+		zephyr,shell-uart = &uarths0;
+		zephyr,sram = &sram0;
+	};
+};
+
+&uarths0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+

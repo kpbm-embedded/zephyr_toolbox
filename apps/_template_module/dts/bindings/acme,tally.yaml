@@ -1,0 +1,15 @@
+description: Event counter that calls back when a threshold is reached (example driver of a Zephyr module)
+
+compatible: "acme,tally"
+
+include: base.yaml
+
+properties:
+  threshold:
+    type: int
+    required: true
+    description: Count at which the callback fires (once per crossing)
+  initial:
+    type: int
+    default: 0
+    description: Count after init and after tally_reset()

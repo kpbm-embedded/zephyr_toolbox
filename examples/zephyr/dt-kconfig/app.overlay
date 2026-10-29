@@ -1,0 +1,25 @@
+/* Two zones; status = "disabled" keeps a node out of the build (no struct, not counted). */
+/ {
+	zone_living: zone-living {
+		compatible = "acme,thermostat";
+		zone-name = "living";
+		setpoint-mdeg = <21000>;
+		mode = "heat";
+	};
+
+	zone_cellar: zone-cellar {
+		compatible = "acme,thermostat";
+		zone-name = "cellar";
+		setpoint-mdeg = <14000>;
+		hysteresis-mdeg = <1000>;
+		mode = "cool";
+	};
+
+	zone_spare: zone-spare {
+		compatible = "acme,thermostat";
+		zone-name = "spare";
+		setpoint-mdeg = <18000>;
+		mode = "heat";
+		status = "disabled";
+	};
+};

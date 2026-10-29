@@ -1,0 +1,9 @@
+/* TIM4_CH1 on PB6 (pinctrl already in blackpill_f411ce.dts); wire an external LED + resistor from PB6 to GND. */
+#include <zephyr/dt-bindings/pwm/pwm.h>
+/ {
+	aliases { pwm-led0 = &pwm_led0; };
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led0: pwm_led_0 { pwms = <&pwm4 1 PWM_MSEC(1) PWM_POLARITY_NORMAL>; };
+	};
+};

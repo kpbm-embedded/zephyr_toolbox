@@ -1,0 +1,14 @@
+# twister: scripts/app ztest ztest-basic [board]   (or west twister -T . -p qemu_cortex_m3)
+common:
+  tags: ztest
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+    - qemu_cortex_a53
+tests:
+  examples.ztest.basic: {}
+  examples.ztest.basic.no_shuffle:
+    extra_configs:
+      - CONFIG_ZTEST_SHUFFLE=n

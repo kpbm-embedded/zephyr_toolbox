@@ -1,0 +1,2 @@
+/* I2C0 on GP4 (SDA) / GP5 (SCL), i2c0_default in rpi_pico-pinctrl.dtsi */
+/ { zephyr,user { i2c-bus = <&i2c0>; }; };

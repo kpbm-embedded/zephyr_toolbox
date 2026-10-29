@@ -1,0 +1,7 @@
+name        = "settings-nvs"
+sdk         = "zephyr"
+description = "Settings subsystem on NVS on a simulated flash partition: static handler (set/get/commit/export), save/load/delete, runtime API, NVS garbage collection; ztest"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu, flash simulator); on a board remove app.overlay to use its storage_partition"
+features    = ["settings", "nvs", "flash", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

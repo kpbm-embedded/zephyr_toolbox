@@ -1,0 +1,8 @@
+# the test image has its own Kconfig root: the app's module level option again
+menu "Application"
+module = APP_CORE
+module-str = app_core
+source "subsys/logging/Kconfig.template.log_config"
+endmenu
+
+source "Kconfig.zephyr"

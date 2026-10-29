@@ -1,0 +1,14 @@
+/* A software CAN controller that loops every sent frame back to the receive filters: the CAN API,
+ * filters and the app protocol can be tested without a transceiver. On a board point zephyr,canbus at
+ * the real controller (WeAct G431 / H562 / H743: &fdcan1, with a transceiver on its pins).
+ */
+/ {
+	chosen {
+		zephyr,canbus = &can_loopback0;
+	};
+
+	can_loopback0: can_loopback0 {
+		compatible = "zephyr,can-loopback";
+		status = "okay";
+	};
+};

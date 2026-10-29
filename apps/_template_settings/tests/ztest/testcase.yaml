@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]   (qemu boards: boards/qemu_*.overlay adds a simulated flash)
+tests:
+  app.__name__.cfg:
+    tags: [ztest, settings, nvs]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

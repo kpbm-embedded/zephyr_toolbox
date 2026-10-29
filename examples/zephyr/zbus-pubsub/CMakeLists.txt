@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20.0)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(zbus_pubsub)
+# channels + observers (src/bus.c) and the ztest suite that publishes and checks delivery (src/test_bus.c)
+target_sources(app PRIVATE src/bus.c src/test_bus.c)

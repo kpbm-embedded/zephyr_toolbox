@@ -1,0 +1,7 @@
+name        = "log-backend"
+sdk         = "zephyr"
+description = "Logging: module levels, compile-time vs runtime filtering per backend, hexdump, and a custom log backend that captures formatted output; ztest checks it"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); on a board the UART backend prints the same messages"
+features    = ["logging", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

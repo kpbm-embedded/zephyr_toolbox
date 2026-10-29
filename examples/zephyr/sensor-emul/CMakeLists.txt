@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20.0)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(sensor_emul)
+# app.overlay: an emulated I2C bus with a Fintek F75303 temperature sensor (Zephyr's driver + its emulator)
+target_sources(app PRIVATE src/thermal.c src/test_thermal.c)

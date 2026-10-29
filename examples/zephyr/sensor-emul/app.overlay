@@ -1,0 +1,21 @@
+/* An emulated I2C controller with an F75303 temperature sensor at 0x4c. The real driver talks I2C;
+ * the emulator answers the register reads, and tests set its temperature through the emul backend API.
+ * On a board the same `temp` node goes under the real &i2c1 (BlackPill: PB6/PB7) and nothing else changes.
+ */
+#include <zephyr/dt-bindings/i2c/i2c.h>
+
+/ {
+	i2c_emul: i2c@7fff0000 {
+		compatible = "zephyr,i2c-emul-controller";
+		reg = <0x7fff0000 0x4>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <I2C_BITRATE_STANDARD>;
+		status = "okay";
+
+		temp: f75303@4c {
+			compatible = "fintek,f75303";
+			reg = <0x4c>;
+		};
+	};
+};

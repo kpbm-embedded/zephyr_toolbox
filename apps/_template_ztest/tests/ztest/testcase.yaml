@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]   (default board qemu_cortex_m3; a real board: --device-testing --device-serial /dev/ttyACM0)
+tests:
+  app.ztest_app.counter:
+    tags: ztest
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

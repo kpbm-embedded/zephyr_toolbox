@@ -1,0 +1,7 @@
+name        = "sensor-emul"
+sdk         = "zephyr"
+description = "Driver test without hardware: Zephyr's F75303 temperature driver on an emulated I2C bus; the test sets values through the emulator backend API and checks the sensor API and an app-level thermal monitor"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu, I2C emulator); on a board put the sensor node under a real I2C bus"
+features    = ["sensor", "emul", "i2c", "devicetree", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

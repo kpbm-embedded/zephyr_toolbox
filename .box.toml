@@ -1,0 +1,26 @@
+id = "32_03"
+name = "zephyr"
+kind = "tool"
+status = "active"
+old_paths = []
+tags = []
+
+[backup]
+tier = "critical"
+
+[tool]
+name = "zephyr"
+launcher = "app"
+env_var = "BOX_ZEPHYR"
+env_path = "toolchain/zephyr"
+
+[scripts.app]
+schema = 1
+kind = "launcher"
+path = "scripts/app"
+summary = "build, test, flash and monitor this ID's Zephyr apps and examples with its own toolchain only."
+interpreter = "bash"
+commands = ["build", "test", "flash", "example", "monitor", "new", "templates", "boards", "bootcmd", "matrix", "run", "ztest", "twister", "debug", "setup", "doctor", "where", "help"]
+flags = ["--board", "--template", "--dir", "--ztest", "--coverage", "--check", "--only"]
+reads = { local = ["BOARD", "JOBS", "MIN_FREE_GB", "ZEPHYR_EXTRA_MODULES", "ZEPHYR_OUT", "ZEPHYR_CACHE", "ZEPHYR_WEST_CACHE"], global = ["BOX_V3"] }
+scope = "global"

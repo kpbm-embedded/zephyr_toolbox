@@ -1,0 +1,625 @@
+#!/usr/bin/env bash
+# app - build, test, flash and monitor this ID's Zephyr apps and examples with its own toolchain only.
+#
+# Run `scripts/app help` for the commands. Self-contained: sources toolchain/zephyr/env.sh (Zephyr SDK, west,
+# venv with PyYAML/pyserial) and nothing else. Out-of-tree boards/SoCs live in ports/ (a Zephyr module, passed
+# via ZEPHYR_EXTRA_MODULES). Build dirs are the same as the CLion profiles in <app>/.idea/cmake.xml.
+set -euo pipefail
+case "$(uname -s)" in Linux|Darwin) ;; *) case "${1:-help}" in help|-h|--help) ;; *)   # exit 3 elsewhere
+  echo "app: not supported on $(uname -s): the toolchains and SDKs here are Linux builds; use a Linux VM or WSL" >&2; exit 3 ;; esac ;; esac
+
+ROOT="$(cd -P "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd -P)"
+# setup / doctor run before the toolchain exists (a fresh clone): scripts/setup does both
+case "${1:-}" in
+  setup) shift; exec "$ROOT/scripts/setup" "$@" ;;
+  doctor) shift; [[ $# -eq 0 ]] || { echo "app: doctor takes no arguments" >&2; exit 2; }; exec "$ROOT/scripts/setup" --doctor ;;
+esac
+if [[ ! -f "$ROOT/toolchain/zephyr/.venv/bin/activate" || ! -e "$ROOT/toolchain/host/buildtools/environment-setup-x86_64-pokysdk-linux" ]]; then
+  case "${1:-help}" in
+    help|-h|--help) ;;
+    *) echo "app: the toolchain is not installed in $ROOT/toolchain: run scripts/app setup" >&2; exit 1 ;;
+  esac
+else
+  # shellcheck source=SCRIPTDIR/../toolchain/zephyr/env.sh
+  source "$ROOT/toolchain/zephyr/env.sh"
+fi
+box_out_of() { # DIR -> DIR's path under the Box `out` location, or nothing (standalone / outside Box)
+  # BOX: the environment, else the folder holding .boxroot above DIR (older trees: the one holding box_env.sh).
+  # Base: $BOX_OUT_<NN_NN> (the ID's own [paths] out), else $BOX_OUT, else $BOX_V3 (old name); missing values come
+  # from the generated box_env.d/locations.sh. BOX_INTEGRATION=0 forces standalone.
+  local dir="$1" box="${BOX:-}" kit=00_09_meta/00_system/00_01_box_env rel id base idv idval="" sub
+  [ "${BOX_INTEGRATION:-1}" != 0 ] || return 0
+  while [ -z "$box" ] && [ "$dir" != / ] && [ -n "$dir" ]; do
+    dir="$(dirname "$dir")"
+    if [ -e "$dir/.boxroot" ] || [ -r "$dir/$kit/box_env.sh" ]; then box="$dir"; fi
+  done
+  [ -n "$box" ] && [ -d "$box" ] || return 0
+  box="$(cd -P "$box" && pwd -P)"
+  rel="${1#"$box"/}"
+  [ "$rel" != "$1" ] || return 0
+  id="${rel#*/}"; id="${id#*/}"; id="${id%%/*}"; idv="BOX_OUT_$(printf %.5s "$id")"
+  base="${BOX_OUT:-${BOX_V3:-}}"
+  eval "idval=\"\${$idv:-}\""
+  if { [ -z "$base" ] || [ -z "$idval" ]; } && [ -r "$box/$kit/box_env.d/locations.sh" ]; then
+    # shellcheck disable=SC1090,SC1091  # generated per host
+    base="${base:-$(BOX="$box"; . "$box/$kit/box_env.d/locations.sh" >/dev/null 2>&1; printf %s "${BOX_OUT:-${BOX_V3:-}}")}"
+    # shellcheck disable=SC1090,SC1091
+    [ -n "$idval" ] || idval="$(BOX="$box"; . "$box/$kit/box_env.d/locations.sh" >/dev/null 2>&1; eval "printf %s \"\${$idv:-}\"")"
+  elif [ -z "$base" ] && [ -r "$box/$kit/box_env.sh" ]; then        # a tree from before locations.sh
+    # shellcheck disable=SC2016  # expanded by the child shell
+    base="$(BOX="$box" bash -c '. "$1" >/dev/null 2>&1; printf %s "${BOX_V3:-}"' _ "$box/$kit/box_env.sh")"
+  fi
+  case "$id" in [0-9][0-9]_[0-9][0-9]_*) ;; *) idval="" ;; esac
+  if [ -n "$idval" ]; then                                         # the ID's own out (+ DIR's path inside the ID)
+    sub="${rel#*/}"; sub="${sub#*/}"
+    case "$sub" in */*) sub="${sub#*/}" ;; *) sub="" ;; esac
+    printf '%s\n' "$idval${sub:+/$sub}"; return 0
+  fi
+  if [ -n "$base" ] && [ -d "$base" ]; then printf '%s\n' "$base/$rel"; fi
+}
+# Build output base: $ZEPHYR_OUT, else this ID's path under the Box `out` location + /build (box_out_of),
+# else ROOT/build. BOX_INTEGRATION=0 forces standalone (ROOT/build).
+default_out() {
+  local o
+  o="$(box_out_of "$ROOT")"
+  if [[ -n "$o" ]]; then echo "$o/build"; else echo "$ROOT/build"; fi
+}
+OUT="${ZEPHYR_OUT:-$(default_out)}"
+JOBS="${JOBS:-8}"
+MIN_FREE_GB="${MIN_FREE_GB:-8}"
+BOARD_FROM_ENV="${BOARD:-}"
+DEFAULT_BOARD="${BOARD:-blackpill_f411ce}"
+EXAMPLES="$ROOT/examples/zephyr"
+BOARDS_YAML="$EXAMPLES/boards.yaml"
+case ":${ZEPHYR_EXTRA_MODULES:-}:" in
+  *":$ROOT/ports:"*) ;;
+  *) export ZEPHYR_EXTRA_MODULES="${ZEPHYR_EXTRA_MODULES:+$ZEPHYR_EXTRA_MODULES;}$ROOT/ports" ;;
+esac
+export CMAKE_BUILD_PARALLEL_LEVEL="$JOBS"
+
+# Rust and Zig toolchains live in other tool IDs and are reached, not copied: the ID's variable (BOX_EMBEDDED_RUST,
+# BOX_RUST_NEXT, BOX_MICROZIG), else the sibling folder. Missing -> exit 3 (skip) with what to install.
+sibling_id() { # ENV_VAR FOLDER MARKER -> the ID folder (the variable may name the ID or a folder inside it)
+  local d="${!1:-}" i
+  for i in 1 2 3; do
+    if [[ -n "$d" && -e "$d/$3" ]]; then (cd -P "$d" && pwd -P); return 0; fi
+    d="${d%/*}"
+  done
+  if [[ -e "$ROOT/../$2/$3" ]]; then (cd -P "$ROOT/../$2" && pwd -P); fi
+  return 0
+}
+skip() { echo "app: SKIP: $*" >&2; exit 3; }
+LANG_RUST_MODULE="$ROOT/modules/lang-rust"   # zephyr-lang-rust, pinned by scripts/setup (step rust)
+
+# Rust: rustup/cargo of 32_17_embedded_rust (its pinned toolchain and targets), crates in this ID's cache/cargo
+rust_toolchain_env() {
+  local rid
+  rid="$(sibling_id BOX_EMBEDDED_RUST 32_17_embedded_rust rust-box)"
+  [[ -n "$rid" && -x "$rid/cache/cargo/bin/cargo" ]] ||
+    skip "Rust: 32_17_embedded_rust not found or not bootstrapped (set BOX_EMBEDDED_RUST; there: ./rust-box bootstrap)"
+  export RUSTUP_HOME="$rid/install/rustup" CARGO_HOME="$ROOT/cache/cargo" PATH="$rid/cache/cargo/bin:$PATH"
+  RUSTUP_TOOLCHAIN="$(sed -n 's/^channel = "\(.*\)"/\1/p' "$rid/rust-toolchain.toml")"; export RUSTUP_TOOLCHAIN
+}
+
+# zephyr-lang-rust apps (Cargo.toml next to CMakeLists.txt): + the module, + libclang for bindgen (LIBCLANG_PATH,
+# else 32_22_rust_next's esp-clang)
+rust_env() {
+  local nid lib
+  rust_toolchain_env
+  [[ -f "$LANG_RUST_MODULE/zephyr/module.yml" ]] || skip "Rust: zephyr-lang-rust not installed: scripts/app setup --only rust"
+  if [[ -z "${LIBCLANG_PATH:-}" ]]; then
+    nid="$(sibling_id BOX_RUST_NEXT 32_22_rust_next rustnext-box)"
+    lib="$(ls -d "${nid:-/nonexistent}"/install/rustup/toolchains/esp/xtensa-esp32-elf-clang/*/esp-clang/lib 2>/dev/null | tail -1)"
+    [[ -n "$lib" ]] || skip "Rust: bindgen needs libclang: set LIBCLANG_PATH or install 32_22_rust_next"
+    export LIBCLANG_PATH="$lib"
+  fi
+  case ";$ZEPHYR_EXTRA_MODULES;" in *";$LANG_RUST_MODULE;"*) ;; *) export ZEPHYR_EXTRA_MODULES="$ZEPHYR_EXTRA_MODULES;$LANG_RUST_MODULE" ;; esac
+}
+
+# Zig sources (C ABI objects linked into the app): zig of 32_24_microzig, caches in this ID / the build output
+zig_env() {
+  local zid
+  zid="$(sibling_id BOX_MICROZIG 32_24_microzig microzig-box)"
+  [[ -n "$zid" && -x "$zid/install/zig/zig" ]] ||
+    skip "Zig: 32_24_microzig not found or not installed (set BOX_MICROZIG; there: ./microzig-box install)"
+  export ZIG="$zid/install/zig/zig" ZIG_GLOBAL_CACHE_DIR="$ROOT/cache/zig" ZIG_LOCAL_CACHE_DIR="$OUT/zig-cache"
+}
+
+# lang_env <source dir>: Rust/Zig environment when the app needs it: Cargo.toml (zephyr-lang-rust app; also two
+# levels up for an app's tests/ztest), rust/Cargo.toml (Rust static library over the C ABI), *.zig in zig/
+lang_env() {
+  local d="$1"
+  if [[ -f "$d/Cargo.toml" || -f "$d/../../Cargo.toml" ]]; then rust_env
+  elif [[ -f "$d/rust/Cargo.toml" || -f "$d/../../rust/Cargo.toml" ]]; then rust_toolchain_env; fi
+  if compgen -G "$d/src/*.zig" >/dev/null || compgen -G "$d/zig/*.zig" >/dev/null || compgen -G "$d/../../zig/*.zig" >/dev/null; then
+    zig_env
+  fi
+  return 0
+}
+
+usage() {
+  cat <<'EOF'
+app - build, test, flash and monitor this ID's Zephyr apps and examples with its own toolchain only.
+
+usage: scripts/app <command> [args]
+
+commands:
+  build   <app> [Debug|Release] [board]  -> $ZEPHYR_OUT/apps/<app>/cmake-build-<profile>/zephyr/zephyr.{elf,bin,hex}
+  test    <app>                          host unit tests (tests/, vendored GoogleTest, CTest)
+  flash   <app> [Debug|Release]          west flash (board's default runner; openocd from the Zephyr SDK)
+  example <example> [board]              examples/zephyr/<example> -> $ZEPHYR_OUT/examples/<example>/<board>/
+  monitor [port] [baud]                  serial console (default /dev/ttyUSB0 115200)
+  new     <name> [--board <b>] [--template <kind>] [--dir <parent>]
+                                         new apps/<name> (or <parent>/<name>) from a template. No --template: MCU
+                                         board -> zephyr-blinky-blackpill, application SoC board -> _template_soc.
+                                         --template <kind>: apps/_template_<kind> (list: scripts/app templates);
+                                         --ztest = --template ztest
+  templates                              template kinds and what each one is
+  setup   [--check] [--only <steps>]     install the pinned toolchain into toolchain/ (fresh clone); --check: state only
+  doctor                                 check the installed toolchain (tools, versions, venv)
+  boards                                 application-SoC boards, their examples, proxies and boot commands
+  bootcmd <app|example> [Debug|Release|board]  image + U-Boot/loader commands for a built SoC board (prints only)
+  matrix  [board ...]                    build every supported example x board (+ qemu proxies) -> BOARDS.tsv
+  run     <example> <qemu board>         build and run on qemu (west build -t run), output to the terminal
+  ztest   <test> [board] [--coverage] [twister args]  run a ztest/pytest suite with twister (default
+                                         qemu_cortex_m3) -> $ZEPHYR_OUT/twister/<test>/<board>/twister.xml;
+                                         --coverage needs qemu_riscv32, qemu_riscv64 or mps2/an385
+  twister [twister args]                 west twister with ports/boards on the board root, output in $ZEPHYR_OUT/twister/run
+  debug   <app|example> [board] [--server|--batch]  build with debug options and start gdb: qemu boards
+                                         through QEMU's gdb stub (:1234), hardware through west debug (openocd)
+  where                                 key paths: ID root, toolchain, build output, apps, examples, ports
+  help                                   this text (also -h, --help)
+
+<app> is a folder name under apps/ or a path. The board is: argument > $BOARD > the app's CLion profile
+(-DBOARD= in .idea/cmake.xml) > blackpill_f411ce. A '/' in a board name (soc/cpu cluster) becomes '_' in build dirs.
+Exit status: 0 ok, 1 failure, 2 usage error.
+
+environment:
+  ZEPHYR_OUT    build output base (default $BOX_OUT/<this ID path>/build; ROOT/build standalone or with BOX_INTEGRATION=0)
+  BOARD         default board
+  JOBS=8        parallel build jobs
+  MIN_FREE_GB=8 builds wait while MemAvailable is below this
+  ZEPHYR_EXTRA_MODULES  extra Zephyr modules (ports/ is always added)
+
+examples:
+  scripts/app build zephyr-blinky-blackpill Release
+  scripts/app example blink rpi_pico
+  scripts/app run hello qemu_x86
+  scripts/app new myapp --board luckfox_lyra
+  scripts/app new mybus --template zbus           # zbus app + ztest suite
+  scripts/app ztest ztest-basic                   # ztest suite on qemu_cortex_m3
+  scripts/app ztest pytest-shell qemu_riscv32         # twister pytest harness against the shell
+  scripts/app debug ztest-basic qemu_cortex_m3 --batch   # gdb: break at main, backtrace, quit
+EOF
+}
+
+die() { echo "app: $*" >&2; exit 1; }
+
+# Usage error: short message + pointer to the help, exit 2.
+die_usage() {
+  echo "app: $*" >&2
+  echo "run 'scripts/app help' for the commands" >&2
+  exit 2
+}
+
+# Folder names in a dir (no files), space separated, for "have: ..." hints.
+list_dirs() {
+  local entry
+  for entry in "$1"/*/; do
+    [[ -d "$entry" ]] && printf '%s ' "$(basename "$entry")"
+  done
+  return 0
+}
+
+# Block while available RAM is below MIN_FREE_GB (parallel builds on a shared host).
+wait_ram() {
+  local kb
+  while kb=$(awk '/MemAvailable/{print $2}' /proc/meminfo) && ((kb < MIN_FREE_GB * 1048576)); do
+    echo "app: only $((kb / 1048576)) GB RAM available (< $MIN_FREE_GB), waiting 30 s" >&2
+    sleep 30
+  done
+}
+
+# Absolute dir of an app given by name (apps/<name>) or path.
+app_dir() {
+  local app="${1:-}"
+  [[ -n "$app" ]] || die_usage "give an app (have: $(list_dirs "$ROOT/apps"))"
+  if [[ -d "$app" ]]; then
+    (cd -P "$app" && pwd -P)
+  elif [[ -d "$ROOT/apps/$app" ]]; then
+    echo "$ROOT/apps/$app"
+  else
+    die "no app '$app' (have: $(list_dirs "$ROOT/apps"))"
+  fi
+}
+
+# Build dir of an app for a profile (Debug -> cmake-build-debug, as CLion names it).
+build_dir() {
+  echo "$OUT/apps/$(basename "$1")/cmake-build-$(tr '[:upper:]' '[:lower:]' <<<"$2")"
+}
+
+# Build dir of an example for a board ('/' in qualified board names -> '_', one dir level per board).
+example_build_dir() {
+  echo "$OUT/examples/$1/${2//\//_}"
+}
+
+# Example dir by name; a missing name is a usage error, an unknown one a failure.
+require_example() {
+  local example="$1"
+  [[ -n "$example" ]] || die_usage "give an example (have: $(list_dirs "$EXAMPLES"))"
+  [[ -d "$EXAMPLES/$example" ]] || die "no example '$example' (have: $(list_dirs "$EXAMPLES"))"
+}
+
+# List the images of a build dir; fail when there is no zephyr.elf.
+images() {
+  local build="$1" image
+  [[ -f "$build/zephyr/zephyr.elf" ]] || die "build produced no image in $build"
+  for image in "$build"/zephyr/zephyr.{bin,elf,hex,uf2}; do   # sorted, as ls listed them
+    [[ -f "$image" ]] && echo "$image"
+  done
+  return 0
+}
+
+# Query examples/zephyr/boards.yaml (PyYAML from the Zephyr venv): names | qemu | core | is_soc <b> |
+# examples <b> | get <b> <key> | table.
+byaml() {
+  python -I - "$BOARDS_YAML" "$@" <<'PY'
+import sys, yaml
+d = yaml.safe_load(open(sys.argv[1])); q = sys.argv[2]; b = d['boards']
+if q == 'names': print(' '.join(b))
+elif q == 'qemu': print(' '.join(d['qemu']))
+elif q == 'core': print(' '.join(d['core_examples']))
+elif q == 'is_soc': sys.exit(0 if sys.argv[3] in b or sys.argv[3] in d['qemu'] else 1)
+elif q == 'examples': print(' '.join(d['core_examples'] + b[sys.argv[3]].get('examples', [])))
+elif q == 'get': print(b[sys.argv[3]].get(sys.argv[4], ''))
+elif q == 'table':
+    print(f"{'board':18} {'SoC':18} {'core':26} {'level':44} {'proxy':16} examples")
+    for k, v in b.items():
+        print(f"{k:18} {v['soc']:18} {v['core']:26} {v['level']:44} {v['proxy']:16} {' '.join(d['core_examples'] + v.get('examples', []))}")
+PY
+}
+
+# Board named by -DBOARD= in the app's CLion profile ("" when none).
+clion_board() {
+  sed -n 's/.*-DBOARD=\([^ "]*\).*/\1/p' "$1/.idea/cmake.xml" 2>/dev/null | head -1
+}
+
+cmd_build() {
+  local dir profile="${2:-Debug}" board="${3:-$DEFAULT_BOARD}" build extra=()
+  dir="$(app_dir "${1:-}")"
+  build="$(build_dir "$dir" "$profile")"
+  case "$profile" in
+    Debug) extra=(-DCONFIG_DEBUG_OPTIMIZATIONS=y) ;;
+    Release) ;;
+    *) die_usage "profile must be Debug or Release, got '$profile'" ;;
+  esac
+  if [[ -z "${3:-}" && -z "$BOARD_FROM_ENV" ]]; then
+    board="$(clion_board "$dir")"
+    board="${board:-$DEFAULT_BOARD}"
+  fi
+  lang_env "$dir"
+  wait_ram
+  cmake -S "$dir" -B "$build" -G Ninja -DBOARD="$board" -DPython3_EXECUTABLE="$VIRTUAL_ENV/bin/python" "${extra[@]}" >/dev/null
+  cmake --build "$build" -j "$JOBS"
+  images "$build"
+}
+
+cmd_test() {
+  local dir build host_bin
+  dir="$(app_dir "${1:-}")"
+  build="$(build_dir "$dir" host-tests)"
+  host_bin="$MCU_HOST/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin"
+  cmake -S "$dir" -B "$build" -G Ninja -DMCU_HOST_TESTS=ON -DCMAKE_C_COMPILER="$host_bin/gcc" -DCMAKE_CXX_COMPILER="$host_bin/g++" >/dev/null
+  cmake --build "$build" -j "$JOBS" && ctest --test-dir "$build" --output-on-failure -j "$JOBS"
+}
+
+cmd_flash() {
+  local dir build profile="${2:-Debug}"
+  dir="$(app_dir "${1:-}")"
+  build="$(build_dir "$dir" "$profile")"
+  [[ -f "$build/zephyr/zephyr.elf" ]] || die "not built: app build $(basename "$dir") $profile"
+  west flash -d "$build"
+}
+
+cmd_example() {
+  local example="${1:-}" board="${2:-$DEFAULT_BOARD}" build
+  require_example "$example"
+  build="$(example_build_dir "$example" "$board")"
+  lang_env "$EXAMPLES/$example"
+  wait_ram
+  west build -p auto -b "$board" -d "$build" "$EXAMPLES/$example"
+  images "$build"
+}
+
+cmd_monitor() {
+  exec python -m serial.tools.miniterm "${1:-/dev/ttyUSB0}" "${2:-115200}"
+}
+
+# Template kinds for `new --template`: mcu (zephyr-blinky-blackpill), soc (_template_soc), and every apps/_template_<kind>.
+template_kinds() {
+  local d kinds="mcu soc"
+  for d in "$ROOT"/apps/_template_*/; do
+    d="$(basename "$d")"; d="${d#_template_}"
+    [[ "$d" == soc ]] || kinds="$kinds $d"
+  done
+  echo "$kinds"
+}
+
+# CLion files of an app: *.in under .idea/ and .run/ -> the file, with this checkout's paths (scripts/setup does all apps).
+render_ide() {
+  local in
+  for in in "$1"/.idea/*.in "$1"/.run/*.in; do
+    [[ -f "$in" ]] || continue
+    sed -e "s#@ID_ROOT@#$ROOT#g" -e "s#@ZEPHYR_OUT@#$OUT#g" "$in" >"${in%.in}"
+  done
+}
+
+cmd_new() {
+  local name="${1:-}" board="" kind="" parent="$ROOT/apps" dst template project file
+  shift || true
+  while (($#)); do
+    case "$1" in
+      --board) board="${2:-}"; shift 2 ;;
+      --ztest) kind=ztest; shift ;;
+      --template) kind="${2:-}"; [[ -n "$kind" ]] || die_usage "new: --template needs a kind ($(template_kinds))"; shift 2 ;;
+      --dir) parent="${2:-}"; [[ -d "$parent" ]] || die_usage "new: --dir needs an existing folder"; shift 2 ;;
+      *) die_usage "new: unknown option $1" ;;
+    esac
+  done
+  [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]*$ ]] || die_usage "new: give a folder name (letters, digits, - _ .)"
+  [[ -z "$kind" || " $(template_kinds) " == *" $kind "* ]] || die_usage "new: no template '$kind' (have: $(template_kinds))"
+  dst="$(cd -P "$parent" && pwd -P)/$name"
+  [[ ! -e "$dst" ]] || die "new: $dst exists"
+  project="${name//[-.]/_}"   # CMake project names: no - or .
+  if [[ "$kind" == ztest ]]; then   # app + lib + tests/ztest; no CLion profiles, so no board to set
+    cp -a "$ROOT/apps/_template_ztest" "$dst"
+    sed -i "s#^project(ztest_app)#project($project)#; s#^project(ztest_app_tests)#project(${project}_tests)#" \
+      "$dst/CMakeLists.txt" "$dst/tests/ztest/CMakeLists.txt"
+    sed -i "s#app\.ztest_app\.#app.$project.#" "$dst/tests/ztest/testcase.yaml"
+    sed -i "s#^\# _template_ztest#\# $name#" "$dst/README.md"
+    echo "app: created $dst from apps/_template_ztest"
+    echo "     tests: scripts/app ztest $dst    build: scripts/app build $dst Debug ${board:-qemu_cortex_m3}"
+    return 0
+  fi
+  if [[ -n "$kind" && "$kind" != mcu && "$kind" != soc ]]; then   # __name__ templates (README of each says what it is)
+    cp -a "$ROOT/apps/_template_$kind" "$dst"
+    grep -rlI -e __name__ "$dst" | while read -r file; do sed -i "s#__name__#$project#g" "$file"; done
+    echo "app: created $dst from apps/_template_$kind"
+    echo "     see $dst/README.md (tests: scripts/app ztest $dst)"
+    return 0
+  fi
+  if [[ "$kind" == soc ]] && { [[ -z "$board" ]] || ! byaml is_soc "$board"; }; then
+    die_usage "new: --template soc needs --board <application-SoC board> (scripts/app boards)"
+  fi
+  if [[ -n "$board" ]] && byaml is_soc "$board" && [[ "$kind" != mcu ]]; then
+    template=_template_soc
+  else
+    template=zephyr-blinky-blackpill
+    board="${board:-blackpill_f411ce}"
+  fi
+  cp -a "$ROOT/apps/$template" "$dst"
+  rm -f "$dst/mcu-project.json"   # in the fresh copy only: that file belongs to mcu-ide's copy of the template
+  grep -rlI -e "$template" -e "DBOARD=" "$dst" --exclude-dir=lib --exclude-dir=tests | while read -r file; do
+    sed -i -e "s#$template#$name#g" -e "s#-DBOARD=[A-Za-z0-9_/@.-]*#-DBOARD=$board#g" "$file"
+  done
+  sed -i "s#^project(blinky)#project($project)#; s#^project(soc_app)#project($project)#" "$dst/CMakeLists.txt"
+  sed -i "s#PROJECT_NAME=\"blinky\"#PROJECT_NAME=\"$project\"#g; s#RUN_TARGET_PROJECT_NAME=\"blinky\"#RUN_TARGET_PROJECT_NAME=\"$project\"#g" "$dst"/.run/*.xml "$dst"/.run/*.xml.in 2>/dev/null || true
+  render_ide "$dst"
+  echo "app: created $dst from apps/$template for board $board"
+  echo "     build: scripts/app build $dst Debug    (CLion: open $dst)"
+}
+
+cmd_templates() {
+  [[ $# -eq 0 ]] || die_usage "templates takes no arguments"
+  local kind dir about
+  for kind in $(template_kinds); do
+    case "$kind" in mcu) dir="$ROOT/apps/zephyr-blinky-blackpill" ;; *) dir="$ROOT/apps/_template_$kind" ;; esac
+    about="$(sed -n '3,6p' "$dir/README.md" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g' | cut -c1-110)"
+    printf '%-9s %s\n' "$kind" "$about"
+  done
+}
+
+cmd_boards() {
+  byaml table
+  echo
+  echo "qemu proxies: $(byaml qemu)"
+  echo "boot commands: scripts/app bootcmd <app|example> ..."
+}
+
+cmd_bootcmd() {
+  local target="${1:-}" board build dir
+  [[ -n "$target" ]] || die_usage "bootcmd: give an app or example"
+  if [[ -d "$EXAMPLES/$target" ]]; then
+    board="${2:-}"
+    [[ -n "$board" ]] || die_usage "bootcmd: example needs a board"
+    build="$(example_build_dir "$target" "$board")"
+  else
+    dir="$(app_dir "$target")"
+    build="$(build_dir "$dir" "${2:-Debug}")"
+    board="$(sed -n 's/^CONFIG_BOARD="\(.*\)"/\1/p' "$build/zephyr/.config" 2>/dev/null)"
+  fi
+  [[ -f "$build/zephyr/zephyr.bin" ]] || die "not built: $build"
+  byaml is_soc "$board" || die "bootcmd: $board is not an application-SoC board (MCUs: app flash)"
+  echo "image: $build/zephyr/zephyr.bin ($(stat -c %s "$build/zephyr/zephyr.bin") bytes, entry $(readelf -h "$build/zephyr/zephyr.elf" | awk '/Entry/{print $4}'))"
+  echo "boot : $(byaml get "$board" boot)"
+  echo "notes: ports/boards/*/$board/README.md (printed only; nothing is written to a device)"
+}
+
+# Examples to build for one board in the matrix: SoC boards their own list, MCUs and qemu the core set.
+matrix_examples() {
+  local board="$1"
+  if byaml is_soc "$board" && [[ " $(byaml qemu) " != *" $board "* ]]; then byaml examples "$board"; else byaml core; fi
+}
+
+cmd_matrix() {
+  local boards=("$@") tsv board example build result started ram
+  [[ ${#boards[@]} -gt 0 ]] || read -r -a boards <<<"$(byaml names) $(byaml qemu)"
+  tsv="$OUT/BOARDS.tsv"
+  mkdir -p "$OUT"
+  printf 'board\texample\tresult\tseconds\tram_used\timage\n' >"$tsv"
+  for board in "${boards[@]}"; do
+    for example in $(matrix_examples "$board"); do
+      build="$(example_build_dir "$example" "$board")"
+      mkdir -p "$(dirname "$build")"
+      wait_ram
+      started=$SECONDS
+      if west build -p always -b "$board" -d "$build" "$EXAMPLES/$example" >"$build.log" 2>&1; then result=OK; else result=FAIL; fi
+      ram="$(grep -E '^ +(RAM|DRAM|SRAM|ddr|sram0?|dram0):' "$build.log" | head -1 | awk '{print $2 $3}' || true)"
+      printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$board" "$example" "$result" "$((SECONDS - started))" "${ram:--}" \
+        "$([[ $result == OK ]] && echo "$build/zephyr/zephyr.bin" || echo "$build.log")" | tee -a "$tsv"
+    done
+  done
+  echo "app: results in $tsv"
+}
+
+cmd_run() {
+  local example="${1:-}" board="${2:-}" build
+  [[ -n "$board" && -d "$EXAMPLES/$example" ]] || die_usage "run: give an example and a qemu board (have: $(list_dirs "$EXAMPLES"))"
+  [[ "$board" == qemu_* ]] || die "run: only qemu boards (hardware: app bootcmd)"
+  build="$(example_build_dir "$example" "$board")"
+  lang_env "$EXAMPLES/$example"
+  wait_ram
+  west build -p auto -b "$board" -d "$build" "$EXAMPLES/$example" >/dev/null
+  exec west build -d "$build" -t run
+}
+
+# Test dir of a ztest target: an example, an app's tests/ztest (else the app itself), or a path.
+test_dir() {
+  local t="$1" d
+  if [[ -d "$EXAMPLES/$t" ]]; then d="$EXAMPLES/$t"
+  elif [[ -d "$ROOT/apps/$t/tests/ztest" ]]; then d="$ROOT/apps/$t/tests/ztest"
+  elif [[ -d "$ROOT/apps/$t" ]]; then d="$ROOT/apps/$t"
+  elif [[ -d "$t/tests/ztest" ]]; then d="$(cd -P "$t/tests/ztest" && pwd -P)"
+  elif [[ -d "$t" ]]; then d="$(cd -P "$t" && pwd -P)"
+  else die "no example, app or folder '$t' (examples: $(list_dirs "$EXAMPLES"))"; fi
+  [[ -f "$d/testcase.yaml" || -f "$d/sample.yaml" ]] || die "no testcase.yaml or sample.yaml in $d"
+  echo "$d"
+}
+
+# west twister with this ID's boards and output under $OUT/twister (old results replaced, not renamed).
+twister() {
+  local outdir="$1"; shift
+  wait_ram
+  west twister --board-root "$ROOT/ports/boards" --outdir "$outdir" --clobber-output -j "$JOBS" --inline-logs "$@"
+}
+
+cmd_ztest() {
+  local target="${1:-}" board=qemu_cortex_m3 dir extra=()
+  [[ -n "$target" ]] || die_usage "ztest: give an example, an app or a test folder (have: $(list_dirs "$EXAMPLES"))"
+  shift
+  if [[ -n "${1:-}" && "$1" != -* ]]; then board="$1"; shift; fi
+  # --coverage: gcov in the image, gcovr report (html + txt) of this ID's sources in the output dir; needs a board
+  # with HAS_COVERAGE_SUPPORT (here: qemu_riscv32, qemu_riscv64, mps2/an385; not qemu_cortex_m3)
+  if [[ "${1:-}" == --coverage ]]; then
+    local triple=arm-zephyr-eabi   # gcov of the board's SDK toolchain (this SDK: arm, aarch64, riscv64)
+    case "$board" in *riscv*) triple=riscv64-zephyr-elf ;; *a53*|*a57*|*a72*|*aarch64*) triple=aarch64-zephyr-elf ;; esac
+    shift; extra=(--coverage --coverage-platform "$board" --coverage-tool gcovr --coverage-formats html,txt
+                  --gcov-tool "$ZEPHYR_SDK_INSTALL_DIR/gnu/$triple/bin/$triple-gcov" --coverage-basedir "$ROOT")
+  fi
+  dir="$(test_dir "$target")"
+  lang_env "$dir"
+  twister "$OUT/twister/$(basename "$target")/${board//\//_}" -p "$board" -T "$dir" "${extra[@]}" "$@"
+  echo "app: report $OUT/twister/$(basename "$target")/${board//\//_}/twister.xml"
+}
+
+cmd_twister() {
+  local prev="" a
+  for a in "$@"; do   # Rust/Zig environment for the test roots given with -T
+    if [[ "$prev" == -T || "$prev" == --testsuite-root ]] && [[ -d "$a" ]]; then
+      if [[ -n "$(find "$a" -name Cargo.toml -not -path '*/rust/*' -print -quit)" ]]; then rust_env
+      elif [[ -n "$(find "$a" -name Cargo.toml -print -quit)" ]]; then rust_toolchain_env; fi
+      if [[ -n "$(find "$a" -name '*.zig' -print -quit)" ]]; then zig_env; fi
+    fi
+    prev="$a"
+  done
+  twister "$OUT/twister/run" "$@"
+}
+
+# gdb named by the build (the SDK's <triple>-gdb).
+build_gdb() {
+  local gdb
+  gdb="$(sed -n 's/^CMAKE_GDB:FILEPATH=//p' "$1/CMakeCache.txt")"
+  [[ -x "$gdb" ]] || die "no gdb in $1/CMakeCache.txt (CMAKE_GDB)"
+  echo "$gdb"
+}
+
+# QEMU's gdb stub port (-s): fixed by Zephyr's qemu.cmake.
+QEMU_GDB_PORT=1234
+
+cmd_debug() {
+  local target="${1:-}" board="" mode=gdb src build gdb
+  [[ -n "$target" ]] || die_usage "debug: give an app or an example"
+  shift
+  if [[ -n "${1:-}" && "$1" != -* ]]; then board="$1"; shift; fi
+  case "${1:-}" in
+    "") ;; --server) mode=server ;; --batch) mode=batch ;;
+    *) die_usage "debug: unknown option $1 (--server or --batch)" ;;
+  esac
+  if [[ -d "$EXAMPLES/$target" ]]; then
+    src="$EXAMPLES/$target"; board="${board:-$DEFAULT_BOARD}"
+    build="$(example_build_dir "$target" "$board")-debug"
+  else
+    src="$(app_dir "$target")"
+    [[ -n "$board" ]] || board="$(clion_board "$src")"; board="${board:-$DEFAULT_BOARD}"
+    build="$(build_dir "$src" Debug)"
+  fi
+  lang_env "$src"
+  wait_ram
+  # -Og keeps variables visible; thread info lets openocd/gdb list Zephyr threads on hardware
+  west build -p auto -b "$board" -d "$build" "$src" -- -DCONFIG_DEBUG_OPTIMIZATIONS=y -DCONFIG_DEBUG_THREAD_INFO=y >/dev/null
+  gdb="$(build_gdb "$build")"
+  if [[ "$board" != qemu_* ]]; then   # hardware: the board's runner (openocd from the SDK) starts the server
+    case "$mode" in
+      server) exec west debugserver -d "$build" ;;
+      batch) die "debug --batch: qemu boards only (hardware: scripts/app debug $target $board)" ;;
+      *) exec west debug -d "$build" ;;
+    esac
+  fi
+  if (exec 3<>"/dev/tcp/127.0.0.1/$QEMU_GDB_PORT") 2>/dev/null; then
+    die "debug: port $QEMU_GDB_PORT is in use (another qemu debug session?)"
+  fi
+  [[ "$mode" != server ]] || { echo "app: qemu waits for gdb on :$QEMU_GDB_PORT ($gdb $build/zephyr/zephyr.elf)"; exec west build -d "$build" -t debugserver; }
+  # qemu -s -S in its own session, so the whole group (ninja, qemu) goes when gdb ends
+  setsid west build -d "$build" -t debugserver >"$build/debugserver.log" 2>&1 &
+  DEBUG_SERVER_PID=$!   # global: the EXIT trap runs after this function has returned
+  trap 'kill -- -"$DEBUG_SERVER_PID" 2>/dev/null || true' EXIT
+  for _ in $(seq 60); do
+    (exec 3<>"/dev/tcp/127.0.0.1/$QEMU_GDB_PORT") 2>/dev/null && break
+    kill -0 "$DEBUG_SERVER_PID" 2>/dev/null || die "debug: qemu did not start (see $build/debugserver.log)"
+    sleep 0.5
+  done
+  if [[ "$mode" == batch ]]; then   # non-interactive check: stop at main, show where, end the target
+    "$gdb" -q -batch -nx "$build/zephyr/zephyr.elf" -ex "target remote :$QEMU_GDB_PORT" -ex "break main" \
+      -ex continue -ex bt -ex "info registers pc" -ex kill
+  else
+    "$gdb" -q "$build/zephyr/zephyr.elf" -ex "target remote :$QEMU_GDB_PORT"
+  fi
+}
+
+# Key paths of this ID (read-only).
+cmd_where() {
+  printf '%-12s %s\n' root "$ROOT" toolchain "$ROOT/toolchain/zephyr" zephyr_base "${ZEPHYR_BASE:-}" \
+    output "$OUT" apps "$ROOT/apps" examples "$EXAMPLES" ports "$ROOT/ports" matrix "$OUT/BOARDS.tsv"
+}
+
+command="${1:-}"
+shift || true
+case "$command" in
+  build) cmd_build "$@" ;;
+  test) cmd_test "$@" ;;
+  flash) cmd_flash "$@" ;;
+  example) cmd_example "$@" ;;
+  monitor) cmd_monitor "$@" ;;
+  new) cmd_new "$@" ;;
+  templates) cmd_templates "$@" ;;
+  boards) cmd_boards ;;
+  bootcmd) cmd_bootcmd "$@" ;;
+  matrix) cmd_matrix "$@" ;;
+  run) cmd_run "$@" ;;
+  ztest) cmd_ztest "$@" ;;
+  twister) cmd_twister "$@" ;;
+  debug) cmd_debug "$@" ;;
+  where) cmd_where ;;
+  -h | --help | help | "") usage ;;
+  *) die_usage "unknown command '$command'" ;;
+esac

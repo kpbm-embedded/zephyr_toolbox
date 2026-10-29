@@ -1,0 +1,22 @@
+# unit tests in variants (one source, several builds). scripts/app ztest <app> [board]
+common:
+  tags: [ztest, testplan]
+  timeout: 60
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  app.__name__.unit: {}
+  app.__name__.unit.no_asserts:
+    extra_configs:
+      - CONFIG_ASSERT=n
+  app.__name__.unit.speed:
+    extra_configs:
+      - CONFIG_SPEED_OPTIMIZATIONS=y
+  app.__name__.unit.stack_checks:
+    extra_args: EXTRA_CONF_FILE=extra.conf
+  app.__name__.unit.riscv_only:
+    # filter: a Kconfig/devicetree expression evaluated per platform after cmake; false -> "filtered"
+    filter: CONFIG_RISCV

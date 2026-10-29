@@ -1,0 +1,32 @@
+# zephyr-box: only sources go into git. Everything below is downloaded, installed or built again by
+# scripts/app setup (pins and sha256 in scripts/setup and scripts/requirements.lock) and scripts/app build|ztest|...
+/build/
+/cache/
+/modules/
+/.pytest_cache/
+__pycache__/
+*.pyc
+twister-out*/
+# toolchain/: only the env and doc files are tracked; installs come from scripts/setup
+/toolchain/zephyr/*
+!/toolchain/zephyr/env.sh
+!/toolchain/zephyr/README.md
+!/toolchain/zephyr/sdk.sh
+!/toolchain/zephyr/99-zephyr-probes.rules
+/toolchain/host/*
+!/toolchain/host/env.sh
+!/toolchain/host/README.md
+!/toolchain/host/sdk.sh
+!/toolchain/host/libcheck.py
+!/toolchain/host/patch-rpath.sh
+!/toolchain/host/update-lib.sh
+!/toolchain/host/sysbin.list
+/toolchain/clion/third_party/
+# CLion files with this checkout's absolute paths: rendered from *.in by scripts/setup (ide step) and app new
+/apps/*/.idea/cmake.xml
+/apps/*/.run/Debug.run.xml
+/apps/*/.idea/workspace.xml
+/apps/*/.idea/shelf/
+/apps/*/cmake-build-*/
+# mcu-ide's per-machine project file (32_01_mcu writes it)
+/apps/*/mcu-project.json

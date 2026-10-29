@@ -1,0 +1,10 @@
+# twister: scripts/app ztest zig-ffi [board]   (needs 32_24_microzig: zig 0.17)
+common:
+  tags: [ztest, zig]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.zig.ffi: {}

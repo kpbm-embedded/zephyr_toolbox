@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SERIES_K230
+	bool
+
+config SOC_SERIES
+	default "k230" if SOC_SERIES_K230
+
+config SOC_K230
+	bool
+	select SOC_SERIES_K230
+
+config SOC
+	default "k230" if SOC_K230

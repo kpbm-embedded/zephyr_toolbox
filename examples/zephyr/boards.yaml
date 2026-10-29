@@ -1,0 +1,26 @@
+# Application-SoC boards of 32_03_zephyr and the examples each one supports.
+# Consumed by scripts/app (app boards | app matrix | app new --board). MCU boards keep their
+# list in each example.toml ("targets"), which the category's mcu tool reads; this file does
+# not touch that.
+#   level: mainline (board in Zephyr v4.4) | out-of-tree (ports/ module of this ID) | proxy (qemu)
+#   proxy: qemu board that stands in for this core when no hardware is attached
+# Examples not listed for a board have no driver there (pwm, adc, i2c, usb, ble, flash/settings).
+
+core_examples: [uart-hello, timer, threads-msgq, shell]
+
+boards:
+  nanopi_neo:        {soc: Allwinner H3,      core: 4x Cortex-A7,   level: out-of-tree (mainline SoC sun8i_h3), proxy: qemu_cortex_a9, examples: [blink], boot: "fatload mmc 0:1 0x40000000 zephyr.bin; go 0x40000000"}
+  nanopi_duo2:       {soc: Allwinner H3,      core: 4x Cortex-A7,   level: out-of-tree (mainline SoC sun8i_h3), proxy: qemu_cortex_a9, examples: [blink], boot: "fatload mmc 0:1 0x40000000 zephyr.bin; go 0x40000000"}
+  opi_zero2:         {soc: Allwinner H616,    core: 4x Cortex-A53 (AArch64), level: out-of-tree, proxy: qemu_cortex_a53, examples: [blink], boot: "fatload mmc 0:1 0x40080000 zephyr.bin; dcache flush; go 0x40080000"}
+  mangopi_mq_r:      {soc: Allwinner T113-S3, core: 2x Cortex-A7,   level: out-of-tree, proxy: qemu_cortex_a9, examples: [blink], boot: "fatload mmc 0:1 0x40000000 zephyr.bin; go 0x40000000"}
+  luckfox_pico_mini: {soc: Rockchip RV1103,   core: Cortex-A7,      level: out-of-tree (backport of Zephyr main rv1106), proxy: qemu_cortex_a9, examples: [blink], boot: "dcache off; icache off; fatload mmc 1:1 0x0 zephyr.bin; go 0x0   (U-Boot without the Thumb bit in do_go_exec, see ports README)"}
+  luckfox_lyra:      {soc: Rockchip RK3506,   core: 3x Cortex-A7,   level: out-of-tree (from Zephyr PR 110923), proxy: qemu_cortex_a9, examples: [blink], boot: "fatload mmc 0:1 0x03e00000 zephyr.bin; dcache flush 0x03e00000 ${filesize}; go 0x03e00000"}
+  milkv_duo:         {soc: Sophgo CV1800B,    core: little C906 (RV64), level: out-of-tree, proxy: qemu_riscv64, examples: [blink], boot: "fiptool: put zephyr.bin into fip.bin as BLCP_2ND (run address 0x83f40000), see ports README"}
+  licheerv_nano:     {soc: Sophgo SG2002,     core: little C906 (RV64), level: out-of-tree, proxy: qemu_riscv64, examples: [], boot: "fiptool: put zephyr.bin into fip.bin as BLCP_2ND (run address 0x8fe00000), see ports README"}
+  stm32mp135f_dk:    {soc: ST STM32MP135F,    core: Cortex-A7,      level: mainline, proxy: qemu_cortex_a9, examples: [blink, button-irq], boot: "Stm32ImageAddHeader.py zephyr.bin -la C0000000 -ep C0000000, then STM32CubeProgrammer + Zephyr.tsv to SD (Zephyr board doc); or from U-Boot: fatload mmc 0:4 0xc0000000 zephyr.bin; go 0xc0000000 (untested)"}
+  k210_generic:      {soc: Kendryte K210,     core: RV64GC (priv 1.9.1), level: out-of-tree, proxy: qemu_riscv64, examples: [], boot: "kflash.py -p <port> -b 1500000 --sram zephyr.bin   (runs from SRAM, no flash write)"}
+  canmv_k230:        {soc: Canaan K230,       core: "C908 (CPU0) RV64", level: out-of-tree, proxy: qemu_riscv64, examples: [], boot: "ext4load mmc 1:1 0x0 zephyr.bin; go 0x0"}
+  k230d_bpi_zero:    {soc: Canaan K230D,      core: "C908 (CPU0) RV64", level: out-of-tree, proxy: qemu_riscv64, examples: [], boot: "ext4load mmc 1:1 0x0 zephyr.bin; go 0x0"}
+
+# qemu stand-ins run (west build -t run) with the core examples
+qemu: [qemu_cortex_a9, qemu_cortex_a53, qemu_riscv64]

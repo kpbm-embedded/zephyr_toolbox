@@ -1,0 +1,2 @@
+/* I2C1 on PB8 (SCL) / PB9 (SDA), enabled in blackpill_f411ce.dts */
+/ { zephyr,user { i2c-bus = <&i2c1>; }; };

@@ -1,0 +1,21 @@
+# Binding of this example (not part of Zephyr): one heating/cooling zone.
+description: Thermostat zone with a set point and hysteresis
+
+compatible: "acme,thermostat"
+
+properties:
+  setpoint-mdeg:
+    type: int
+    required: true
+    description: Target temperature in milli-degrees Celsius
+  hysteresis-mdeg:
+    type: int
+    default: 500
+    description: Switching band around the set point
+  mode:
+    type: string
+    required: true
+    enum: ["heat", "cool"]
+  zone-name:
+    type: string
+    required: true

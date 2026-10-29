@@ -1,0 +1,7 @@
+name        = "settings"
+sdk         = "zephyr"
+description = "Persist a boot counter with the settings subsystem on the NVS flash backend (storage_partition)"
+targets     = ["promicro_nrf52840", "weact_g431", "esp32c3"]
+hardware    = "Uses the board storage_partition in internal flash (from board DTS): nRF52840 Pro Micro, WeAct G431, ESP32-C3"
+features    = ["settings", "nvs", "flash"]
+status      = "builds; untested on hardware"

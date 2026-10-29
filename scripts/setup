@@ -1,0 +1,344 @@
+#!/usr/bin/env bash
+# setup - install everything under toolchain/ that git does not carry: pinned and checksum-verified.
+#
+#   scripts/setup [--check] [--only <step>[,<step>...]]     (also: scripts/app setup ...)
+#   scripts/setup --doctor                                  (also: scripts/app doctor)
+#
+# Steps (each skipped when already done, so a rerun only finishes what is missing):
+#   host    Yocto buildtools-extended 6.0.4 (git, make, gcc), CMake 4.4.4, ninja 1.13.2, uv 0.13.5 -> toolchain/host
+#   python  uv-managed CPython 3.13.17 -> toolchain/zephyr/python; venv toolchain/zephyr/.venv from
+#           scripts/requirements.lock (west 1.5.0 + Zephyr v4.4.2 requirements, every wheel sha256-pinned)
+#   west    Zephyr v4.4.2 (tag commit checked) -> toolchain/zephyr/ws; west update --narrow, depth 1 (module
+#           revisions are the SHAs of the v4.4.2 manifest); west blobs fetch hal_espressif (sha256 checked by west)
+#   sdk     Zephyr SDK 1.0.1 minimal + hosttools + GNU toolchains arm, aarch64, riscv64, xtensa esp32/esp32s3
+#   gtest   GoogleTest 1.18.0 for the apps' host unit tests -> toolchain/clion/third_party
+#   rust    zephyr-lang-rust (Zephyr module for Rust apps) at a pinned commit -> modules/lang-rust. The Rust
+#           toolchain itself is not installed here: scripts/app uses 32_17_embedded_rust's (BOX_EMBEDDED_RUST)
+#   ide     render apps/*/.idea and .run files (*.in) with this checkout's paths
+#
+# Downloads go to $ZEPHYR_CACHE (default: <ID>/cache) and are kept; a file already there is only checked.
+# ZEPHYR_WEST_CACHE=<dir of another west workspace> clones the modules from it (west update --path-cache).
+# Needs from the OS: bash, curl, tar, xz, sha256sum (git, gcc, make, python3 come with buildtools).
+# Exit status: 0 ok, 1 failure, 2 usage error.
+set -euo pipefail
+
+ROOT="$(cd -P "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd -P)"
+TC="$ROOT/toolchain"
+HOST="$TC/host"
+ZR="$TC/zephyr"
+CACHE="${ZEPHYR_CACHE:-$ROOT/cache}"
+
+# ---- pins ---------------------------------------------------------------------------------------------------
+BT_VER=6.0.4
+BT_FILE="x86_64-buildtools-extended-nativesdk-standalone-$BT_VER.sh"
+BT_URL="https://downloads.yoctoproject.org/releases/yocto/yocto-$BT_VER/buildtools/$BT_FILE"
+BT_SHA=93002cc067c15523c1fca4e2ee047a1dba0eed7ccfdb41652141741edb5469b2
+CMAKE_VER=4.4.4
+CMAKE_FILE="cmake-$CMAKE_VER-linux-x86_64.tar.gz"
+CMAKE_URL="https://github.com/Kitware/CMake/releases/download/v$CMAKE_VER/$CMAKE_FILE"
+CMAKE_SHA=e5bb807f7728cb60cd8b27ebc97a2edb469b68655f21e844a600c3575b76f5bb
+NINJA_VER=1.13.2
+NINJA_FILE="ninja-$NINJA_VER-linux.zip"
+NINJA_URL="https://github.com/ninja-build/ninja/releases/download/v$NINJA_VER/ninja-linux.zip"
+NINJA_SHA=5749cbc4e668273514150a80e387a957f933c6ed3f5f11e03fb30955e2bbead6
+UV_VER=0.13.5
+UV_FILE="uv-$UV_VER-x86_64-unknown-linux-gnu.tar.gz"
+UV_URL="https://github.com/astral-sh/uv/releases/download/$UV_VER/uv-x86_64-unknown-linux-gnu.tar.gz"
+UV_SHA=f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f
+PY_VER=3.13.17                      # uv checks the interpreter download against its built-in sha256
+ZEPHYR_TAG=v4.4.2
+ZEPHYR_COMMIT=dccb09599635bdff17633fa7e9dab014b91dce90
+ZEPHYR_URL=https://github.com/zephyrproject-rtos/zephyr
+SDK_VER=1.0.1
+SDK_URL="https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v$SDK_VER"
+# file | sha256 (from the release's sha256.sum)
+SDK_FILES="zephyr-sdk-${SDK_VER}_linux-x86_64_minimal.tar.xz|ca9bc0ff66fafca1dac9d592a36d953cf16d096a9d09b1c0357f021cf9f6a7eb
+hosttools_linux-x86_64.tar.xz|4d90f2d9a42802bc76bfaacd2bb52e6c30a046a425148e1ed1a7311cb66bde60
+toolchain_gnu_linux-x86_64_arm-zephyr-eabi.tar.xz|21b85981cb5a1818d9bc53d82af80f208946ec038b982ff1907287572ed3a634
+toolchain_gnu_linux-x86_64_aarch64-zephyr-elf.tar.xz|01c0cfe1daaab2d2a0f71165f11a066d983ef97e51c4a3753186afa6ae55c24b
+toolchain_gnu_linux-x86_64_riscv64-zephyr-elf.tar.xz|01750834c471fbdb335c1b8b8aee17010a1968938957db85640c366235771a38
+toolchain_gnu_linux-x86_64_xtensa-espressif_esp32_zephyr-elf.tar.xz|39f6bc4cd6d542b41a5189fb71869eea19bd54e73733d16f58d6615f3f7d66ae
+toolchain_gnu_linux-x86_64_xtensa-espressif_esp32s3_zephyr-elf.tar.xz|904d42b75e4d819c58b0db640783911e508b9ee2a627eb5daffb907465a34be1"
+SDK_TRIPLES="arm-zephyr-eabi aarch64-zephyr-elf riscv64-zephyr-elf xtensa-espressif_esp32_zephyr-elf xtensa-espressif_esp32s3_zephyr-elf"
+GTEST_VER=1.18.0
+GTEST_FILE="googletest-$GTEST_VER.tar.gz"
+GTEST_URL="https://github.com/google/googletest/releases/download/v$GTEST_VER/$GTEST_FILE"
+GTEST_SHA=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
+LANG_RUST_URL=https://github.com/zephyrproject-rtos/zephyr-lang-rust
+LANG_RUST_COMMIT=6823b690ed2daf636323cbb8a10447d142752e1f   # main of 2026-10-15, builds with Zephyr v4.4.2
+ALL_STEPS="host python west sdk gtest rust ide"
+
+usage() { sed -n '2,22p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+say() { printf 'setup: %s\n' "$*"; }
+die() { printf 'setup: %s\n' "$*" >&2; exit 1; }
+
+# fetch <url> <file in cache> <sha256>: download once (curl with timeouts and retries), always verify
+fetch() {
+  local url="$1" file="$CACHE/$2" sha="$3" got
+  mkdir -p "$CACHE"
+  if [[ ! -s "$file" ]]; then
+    say "download $url"
+    curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 3600 -o "$file.part" "$url" || die "download failed: $url"
+    mv -f "$file.part" "$file"
+  fi
+  got="$(sha256sum "$file" | cut -d' ' -f1)"
+  [[ "$got" == "$sha" ]] || die "sha256 mismatch for $file: got $got, want $sha (move the file away and rerun)"
+}
+
+# unpack <archive> <dest> [strip]: into dest.part, then rename (a half-unpacked dir is never taken as done)
+unpack() {
+  local arc="$1" dest="$2" strip="${3:-1}"
+  [[ ! -e "$dest.part" ]] || die "$dest.part exists from an interrupted run: move it away and rerun"
+  mkdir -p "$dest.part"
+  tar -xf "$arc" -C "$dest.part" --strip-components="$strip"
+  mv -T "$dest.part" "$dest"
+}
+
+link() { ln -sfn "$1" "$2"; }   # link <target> <name>
+
+# ---- steps --------------------------------------------------------------------------------------------------
+st_host() {
+  mkdir -p "$HOST/bin"
+  # an existing host layer that is not ours (a real dir, not a link) is never touched
+  [[ ! -e "$HOST/buildtools" || -L "$HOST/buildtools" ]] || { bt_version_ok && say "host/buildtools: in place, kept"; } ||
+    die "$HOST/buildtools exists and is not buildtools $BT_VER: move it away and rerun"
+  if [[ -L "$HOST/buildtools" || ! -e "$HOST/buildtools" ]] && [[ ! -f "$HOST/buildtools-$BT_VER/.setup-ok" ]]; then
+    fetch "$BT_URL" "$BT_FILE" "$BT_SHA"
+    [[ ! -e "$HOST/buildtools-$BT_VER" ]] || die "$HOST/buildtools-$BT_VER is incomplete: move it away and rerun"
+    say "install buildtools-extended $BT_VER"
+    # the installer bakes its target path into the SDK, so it installs under its final name
+    sh "$CACHE/$BT_FILE" -y -d "$HOST/buildtools-$BT_VER" >"$CACHE/buildtools-install.log" 2>&1 ||
+      die "buildtools installer failed (log: $CACHE/buildtools-install.log)"
+    touch "$HOST/buildtools-$BT_VER/.setup-ok"
+  fi
+  [[ -e "$HOST/buildtools" && ! -L "$HOST/buildtools" ]] || link "buildtools-$BT_VER" "$HOST/buildtools"
+  if [[ ! -x "$HOST/cmake-$CMAKE_VER/bin/cmake" ]]; then
+    fetch "$CMAKE_URL" "$CMAKE_FILE" "$CMAKE_SHA"; say "install cmake $CMAKE_VER"
+    unpack "$CACHE/$CMAKE_FILE" "$HOST/cmake-$CMAKE_VER"
+  fi
+  link "cmake-$CMAKE_VER" "$HOST/cmake"
+  if [[ ! -x "$HOST/ninja-$NINJA_VER/ninja" ]]; then
+    fetch "$NINJA_URL" "$NINJA_FILE" "$NINJA_SHA"; say "install ninja $NINJA_VER"
+    mkdir -p "$HOST/ninja-$NINJA_VER.part"
+    "$HOST/buildtools/sysroots/x86_64-pokysdk-linux/usr/bin/python3" -I -c \
+      'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' "$CACHE/$NINJA_FILE" "$HOST/ninja-$NINJA_VER.part"
+    chmod +x "$HOST/ninja-$NINJA_VER.part/ninja"
+    mv -T "$HOST/ninja-$NINJA_VER.part" "$HOST/ninja-$NINJA_VER"
+  fi
+  link "ninja-$NINJA_VER" "$HOST/ninja"; link ../ninja/ninja "$HOST/bin/ninja"
+  if [[ ! -x "$HOST/uv-$UV_VER/uv" ]]; then
+    fetch "$UV_URL" "$UV_FILE" "$UV_SHA"; say "install uv $UV_VER"
+    unpack "$CACHE/$UV_FILE" "$HOST/uv-$UV_VER"
+  fi
+  link "uv-$UV_VER" "$HOST/uv"; link ../uv/uv "$HOST/bin/uv"; link ../uv/uvx "$HOST/bin/uvx"
+}
+
+# the host layer's env (buildtools, cmake, ninja, uv); uv keeps its cache in the download cache
+host_env() {
+  # shellcheck source=SCRIPTDIR/../toolchain/host/env.sh
+  . "$HOST/env.sh"
+  export UV_CACHE_DIR="$CACHE/uv"
+}
+
+st_python() {
+  host_env
+  export UV_PYTHON_INSTALL_DIR="$ZR/python"
+  local py="$ZR/python/cpython-$PY_VER-linux-x86_64-gnu/bin/python3"
+  if [[ ! -x "$py" ]]; then
+    say "install CPython $PY_VER (uv)"
+    uv python install --no-bin "$PY_VER"
+  fi
+  [[ -x "$py" ]] || die "CPython $PY_VER not found at $py"
+  link "cpython-$PY_VER-linux-x86_64-gnu" "$ZR/python/cpython-3.13-linux-x86_64-gnu"
+  if [[ ! -f "$ZR/.venv/.setup-ok" ]]; then
+    say "create venv toolchain/zephyr/.venv (requirements.lock, hashes required)"
+    [[ -x "$ZR/.venv/bin/python" ]] || uv venv --python "$ZR/python/cpython-3.13-linux-x86_64-gnu/bin/python3" "$ZR/.venv"
+    uv pip install --python "$ZR/.venv/bin/python" --require-hashes -r "$ROOT/scripts/requirements.lock"
+    touch "$ZR/.venv/.setup-ok"
+  fi
+}
+
+zephyr_env() {
+  # shellcheck source=SCRIPTDIR/../toolchain/zephyr/env.sh
+  . "$ZR/env.sh"
+  export UV_CACHE_DIR="$CACHE/uv"
+}
+
+st_west() {
+  [[ -x "$ZR/.venv/bin/west" ]] || die "west missing: run the python step first"
+  host_env
+  local z="$ZR/ws/zephyr" head
+  if [[ ! -d "$z/.git" ]]; then
+    say "clone zephyr $ZEPHYR_TAG (depth 1)"
+    mkdir -p "$ZR/ws"
+    git clone -q --depth 1 --branch "$ZEPHYR_TAG" "$ZEPHYR_URL" "$z.part"
+    mv -T "$z.part" "$z"
+  fi
+  head="$(git -C "$z" rev-parse HEAD)"
+  [[ "$head" == "$ZEPHYR_COMMIT" ]] || die "zephyr at $head, want $ZEPHYR_COMMIT ($ZEPHYR_TAG)"
+  [[ -d "$ZR/ws/.west" ]] || (cd "$ZR/ws" && "$ZR/.venv/bin/west" init -l zephyr)
+  if [[ ! -f "$ZR/ws/.west/.setup-ok" ]]; then
+    local cache=()
+    [[ -z "${ZEPHYR_WEST_CACHE:-}" ]] || cache=(--path-cache "$ZEPHYR_WEST_CACHE")
+    say "west update --narrow (depth 1)${ZEPHYR_WEST_CACHE:+, from $ZEPHYR_WEST_CACHE}"
+    (cd "$ZR/ws" && "$ZR/.venv/bin/west" update --narrow -o=--depth=1 "${cache[@]}")
+    (cd "$ZR/ws" && ZEPHYR_BASE="$z" "$ZR/.venv/bin/west" blobs fetch hal_espressif)
+    touch "$ZR/ws/.west/.setup-ok"
+  fi
+}
+
+st_sdk() {
+  local d="$ZR/sdk/zephyr-sdk-$SDK_VER" line f sha t
+  host_env
+  mkdir -p "$ZR/sdk"
+  while IFS='|' read -r f sha; do fetch "$SDK_URL/$f" "$f" "$sha"; done <<<"$SDK_FILES"
+  if [[ ! -f "$d/sdk_version" ]]; then
+    say "install Zephyr SDK $SDK_VER (minimal)"
+    [[ ! -e "$d" ]] || die "$d is incomplete: move it away and rerun"
+    unpack "$CACHE/zephyr-sdk-${SDK_VER}_linux-x86_64_minimal.tar.xz" "$d"
+  fi
+  mkdir -p "$d/gnu"
+  for t in $SDK_TRIPLES; do
+    [[ -x "$d/gnu/$t/bin/$t-gcc" ]] && continue
+    say "install toolchain $t"
+    tar -xf "$CACHE/toolchain_gnu_linux-x86_64_$t.tar.xz" -C "$d/gnu"
+  done
+  if [[ ! -f "$d/hosttools/.setup-ok" ]]; then
+    say "install SDK hosttools (dtc, qemu, openocd, ...)"
+    tar -xf "$CACHE/hosttools_linux-x86_64.tar.xz" -C "$d"
+    # setup.sh -h runs the hosttools installer; no -c: the SDK is found through ZEPHYR_SDK_INSTALL_DIR,
+    # nothing is registered in ~/.cmake
+    (cd "$d" && ./setup.sh -h) >/dev/null
+    touch "$d/hosttools/.setup-ok"
+  fi
+  link "zephyr-sdk-$SDK_VER" "$ZR/sdk/zephyr-sdk"
+}
+
+st_gtest() {
+  local dest="$TC/clion/third_party/googletest-$GTEST_VER"
+  [[ -f "$dest/CMakeLists.txt" ]] && return 0
+  fetch "$GTEST_URL" "$GTEST_FILE" "$GTEST_SHA"
+  say "install GoogleTest $GTEST_VER"
+  mkdir -p "$TC/clion/third_party"
+  unpack "$CACHE/$GTEST_FILE" "$dest"
+}
+
+st_rust() {
+  local d="$ROOT/modules/lang-rust"
+  host_env
+  if [[ ! -d "$d/.git" ]]; then
+    say "fetch zephyr-lang-rust $LANG_RUST_COMMIT"
+    [[ ! -e "$d.part" ]] || die "$d.part exists from an interrupted run: move it away and rerun"
+    mkdir -p "$d.part"
+    git -C "$d.part" init -q
+    git -C "$d.part" remote add origin "$LANG_RUST_URL"
+    git -C "$d.part" fetch -q --depth 1 origin "$LANG_RUST_COMMIT"
+    git -C "$d.part" checkout -q FETCH_HEAD
+    mv -T "$d.part" "$d"
+  fi
+  [[ "$(git -C "$d" rev-parse HEAD)" == "$LANG_RUST_COMMIT" ]] || die "$d is not at $LANG_RUST_COMMIT"
+}
+
+# *.in under apps/*/.idea and apps/*/.run -> the file without .in, @ID_ROOT@ and @ZEPHYR_OUT@ filled in
+render_ide() {
+  local out in file
+  out="${ZEPHYR_OUT:-$("$ROOT/scripts/app" where 2>/dev/null | awk '$1=="output"{print $2}')}"
+  out="${out:-$ROOT/build}"
+  for in in "$ROOT"/apps/*/.idea/*.in "$ROOT"/apps/*/.run/*.in; do
+    [[ -f "$in" ]] || continue
+    file="${in%.in}"
+    sed -e "s#@ID_ROOT@#$ROOT#g" -e "s#@ZEPHYR_OUT@#$out#g" "$in" >"$file.tmp"
+    if cmp -s "$file.tmp" "$file"; then rm -f "$file.tmp"; else mv -f "$file.tmp" "$file"; say "wrote ${file#"$ROOT"/}"; fi
+  done
+}
+st_ide() { render_ide; }
+
+# ---- check / doctor -----------------------------------------------------------------------------------------
+# buildtools in place: the version file of host/buildtools (a dir from an older install, or our link) names BT_VER
+bt_version_ok() {
+  grep -qx "Distro Version: $BT_VER" "$HOST/buildtools/version-x86_64-pokysdk-linux" 2>/dev/null &&
+    [[ -f "$HOST/buildtools/environment-setup-x86_64-pokysdk-linux" ]]
+}
+
+# state of each step: done | missing (no side effects)
+step_done() {
+  case "$1" in
+    host) bt_version_ok && [[ -x "$HOST/cmake-$CMAKE_VER/bin/cmake" && -x "$HOST/ninja-$NINJA_VER/ninja" && -x "$HOST/uv-$UV_VER/uv" ]] ;;
+    python) [[ -x "$ZR/python/cpython-$PY_VER-linux-x86_64-gnu/bin/python3" && -x "$ZR/.venv/bin/west" ]] ;;
+    west) [[ "$(git -C "$ZR/ws/zephyr" rev-parse HEAD 2>/dev/null)" == "$ZEPHYR_COMMIT" && -d "$ZR/ws/.west" && -d "$ZR/ws/modules/hal/cmsis_6" ]] ;;
+    sdk) local t; [[ "$(cat "$ZR/sdk/zephyr-sdk/sdk_version" 2>/dev/null)" == "$SDK_VER" ]] || return 1
+         for t in $SDK_TRIPLES; do [[ -x "$ZR/sdk/zephyr-sdk/gnu/$t/bin/$t-gcc" ]] || return 1; done
+         [[ -d "$ZR/sdk/zephyr-sdk/hosttools/sysroots" ]] ;;
+    gtest) [[ -f "$TC/clion/third_party/googletest-$GTEST_VER/CMakeLists.txt" ]] ;;
+    rust) [[ "$(git -C "$ROOT/modules/lang-rust" rev-parse HEAD 2>/dev/null)" == "$LANG_RUST_COMMIT" ]] ;;
+    ide) local in; for in in "$ROOT"/apps/*/.idea/*.in "$ROOT"/apps/*/.run/*.in; do [[ ! -f "$in" || -f "${in%.in}" ]] || return 1; done ;;
+  esac
+}
+
+check() {
+  local s rc=0
+  printf '%-7s %-8s %s\n' STEP STATE PINNED
+  for s in $ALL_STEPS; do
+    local pin
+    case "$s" in
+      host) pin="buildtools $BT_VER, cmake $CMAKE_VER, ninja $NINJA_VER, uv $UV_VER" ;;
+      python) pin="CPython $PY_VER, venv from requirements.lock ($(grep -c '==' "$ROOT/scripts/requirements.lock") packages)" ;;
+      west) pin="zephyr $ZEPHYR_TAG ($ZEPHYR_COMMIT), modules from its west.yml" ;;
+      sdk) pin="Zephyr SDK $SDK_VER: $SDK_TRIPLES + hosttools" ;;
+      gtest) pin="GoogleTest $GTEST_VER" ;;
+      rust) pin="zephyr-lang-rust $LANG_RUST_COMMIT (Rust toolchain: 32_17_embedded_rust)" ;;
+      ide) pin="apps/*/.idea, .run from *.in" ;;
+    esac
+    if step_done "$s"; then printf '%-7s %-8s %s\n' "$s" done "$pin"; else printf '%-7s %-8s %s\n' "$s" missing "$pin"; rc=1; fi
+  done
+  ((rc == 0)) && say "everything installed" || say "missing steps: run scripts/app setup"
+  return "$rc"
+}
+
+doctor() {
+  local rc=0 t p v
+  ok() { printf 'ok      %-24s %s\n' "$1" "$2"; }
+  bad() { printf 'MISSING %-24s %s\n' "$1" "$2"; rc=1; }
+  for s in $ALL_STEPS; do step_done "$s" || bad "setup step $s" "run: scripts/app setup --only $s"; done
+  if [[ -f "$ZR/.venv/bin/activate" && -f "$HOST/buildtools/environment-setup-x86_64-pokysdk-linux" ]]; then
+    set +u; zephyr_env; set -u
+    for t in west cmake ninja python dtc qemu-system-arm qemu-system-riscv32 openocd; do
+      p="$(command -v "$t" || true)"
+      if [[ -n "$p" ]]; then v="$("$p" --version 2>&1 | head -1)"; ok "$t" "$v"; else bad "$t" ""; fi
+    done
+    for t in $SDK_TRIPLES; do
+      p="$ZEPHYR_SDK_INSTALL_DIR/gnu/$t/bin/$t-gcc"
+      if [[ -x "$p" ]]; then ok "$t-gcc" "$("$p" -dumpversion)"; else bad "$t-gcc" ""; fi
+    done
+    v="$(git -C "$ZEPHYR_BASE" describe --tags 2>/dev/null || true)"
+    [[ "$v" == "$ZEPHYR_TAG" ]] && ok ZEPHYR_BASE "$v" || bad ZEPHYR_BASE "want $ZEPHYR_TAG, have '${v}'"
+    # twister refuses to run when pytest-twister-harness is pip-installed (it adds the plugin itself)
+    if python -I -c 'import twister_harness' 2>/dev/null; then bad "venv" "pytest-twister-harness is installed: uninstall it"; else ok venv "no pytest-twister-harness (twister adds it)"; fi
+  fi
+  ((rc == 0)) && say "doctor: all ok" || say "doctor: problems above"
+  return "$rc"
+}
+
+# ---- main ---------------------------------------------------------------------------------------------------
+mode=install steps="$ALL_STEPS"
+while (($#)); do
+  case "$1" in
+    --check) mode=check; shift ;;
+    --doctor) mode=doctor; shift ;;
+    --only) [[ -n "${2:-}" ]] || { echo "setup: --only needs steps ($ALL_STEPS)" >&2; exit 2; }; steps="${2//,/ }"; shift 2 ;;
+    -h|--help|help) usage; exit 0 ;;
+    *) echo "setup: unknown option $1 (see scripts/setup --help)" >&2; exit 2 ;;
+  esac
+done
+for s in $steps; do [[ " $ALL_STEPS " == *" $s "* ]] || { echo "setup: unknown step '$s' (steps: $ALL_STEPS)" >&2; exit 2; }; done
+[[ "$(uname -s)-$(uname -m)" == Linux-x86_64 ]] || die "only Linux x86_64 (the pinned toolchains are Linux x86_64 builds)"
+case "$mode" in
+  check) check; exit $? ;;
+  doctor) doctor; exit $? ;;
+esac
+for c in curl tar xz sha256sum; do command -v "$c" >/dev/null || die "needs '$c' on PATH"; done   # git: from buildtools
+for s in $steps; do
+  if [[ "$s" != ide ]] && step_done "$s"; then say "$s: already done"; continue; fi
+  "st_$s"
+done
+say "done"; check

@@ -1,0 +1,34 @@
+# Copyright (c) 2026 Khai Do
+# SPDX-License-Identifier: Apache-2.0
+# Backport from Zephyr main; added allwinner,pull-offset (32_03_zephyr ports/).
+
+description: Allwinner sunxi GPIO controller
+
+compatible: "allwinner,sunxi-gpio"
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  reg-names:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+  allwinner,hw-bank:
+    type: int
+    required: true
+    description: Hardware bank ID for the interrupts
+
+  allwinner,pull-offset:
+    type: int
+    description: |
+      Offset of the first pull register inside the bank: 0x1c on H3/H5/H616/H618
+      (default), 0x24 on T113/D1 (banks 0x30 apart).
+
+gpio-cells:
+  - pin
+  - flags

@@ -1,0 +1,7 @@
+name        = "pwm-fade"
+sdk         = "zephyr"
+description = "Fade an LED with PWM (pwm-led0 alias, 50 steps up and down)"
+targets     = ["blackpill_f411ce", "rpi_pico", "rpi_pico2", "promicro_nrf52840"]
+hardware    = "BlackPill: external LED on PB6 (TIM4_CH1); Pico/Pico 2: on-board LED GP25 (PWM 4B); Pro Micro nRF52840: pwm-led0 from board DTS (red LED)"
+features    = ["pwm"]
+status      = "builds; untested on hardware"

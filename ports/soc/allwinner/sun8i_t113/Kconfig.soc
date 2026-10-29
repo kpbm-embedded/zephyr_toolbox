@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SERIES_SUN8IW20
+	bool
+
+config SOC_SUN8I_T113
+	bool
+	select SOC_SERIES_SUN8IW20
+
+config SOC_SERIES
+	default "sun8iw20" if SOC_SERIES_SUN8IW20
+
+config SOC
+	default "sun8i_t113" if SOC_SUN8I_T113

@@ -1,0 +1,6 @@
+/ {
+	events: tally-events {
+		compatible = "acme,tally";
+		threshold = <5>;
+	};
+};

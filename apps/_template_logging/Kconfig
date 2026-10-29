@@ -1,0 +1,10 @@
+mainmenu "__name__"
+
+menu "Application"
+# CONFIG_APP_CORE_LOG_LEVEL (0 off .. 4 dbg), default CONFIG_LOG_DEFAULT_LEVEL
+module = APP_CORE
+module-str = app_core
+source "subsys/logging/Kconfig.template.log_config"
+endmenu
+
+source "Kconfig.zephyr"

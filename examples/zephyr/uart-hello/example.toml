@@ -1,0 +1,7 @@
+name        = "uart-hello"
+sdk         = "zephyr"
+description = "printk and printf over the console UART (zephyr,console)"
+targets     = ["blackpill_f411ce", "weact_g431", "rpi_pico2", "promicro_nrf52840", "esp32c3", "esp32s3", "ch32v003"]
+hardware    = "Console UART per board DTS: BlackPill USART1 PA9/PA10, G431 USART2 PA2/PA3, Pico 2 UART0 GP0/GP1, Pro Micro UART0, ESP32 UART0, CH32V003 USART1"
+features    = ["uart", "console"]
+status      = "builds; untested on hardware"

@@ -1,0 +1,7 @@
+# Copied from Zephyr main soc/allwinner/sun50i_h618 (Copyright (c) 2026 Khai Do); H616 = H618 core/peripherals.
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SUN50I_H616
+	select ARM64
+	select CPU_CORTEX_A53
+	select ARM_ARCH_TIMER
+	select SYS_CLOCK_EXISTS

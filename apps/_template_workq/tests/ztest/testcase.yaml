@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]
+tests:
+  app.__name__.sampler:
+    tags: [ztest, workqueue]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

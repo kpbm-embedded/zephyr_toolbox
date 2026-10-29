@@ -1,0 +1,7 @@
+name        = "pytest-shell"
+sdk         = "zephyr"
+description = "Twister pytest harness: pytest tests drive the Zephyr shell of a booted image through the twister_harness shell fixture"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); a board with a console UART via twister --device-testing"
+features    = ["pytest", "twister", "shell"]
+status      = "passes on qemu_cortex_m3 (scripts/app ztest)"

@@ -1,0 +1,32 @@
+/*
+ * Sipeed LicheeRV Nano (SG2002), little C906 core - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <riscv/sophgo/cv18xx.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Sipeed LicheeRV Nano (SG2002), little C906 core";
+	compatible = "sipeed,licheerv-nano", "sophgo,sg2002";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &sram;
+	};
+
+	sram: memory@8fe00000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x8fe00000 DT_SIZE_M(2)>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+

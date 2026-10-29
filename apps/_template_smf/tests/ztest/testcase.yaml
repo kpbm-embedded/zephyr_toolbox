@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]
+tests:
+  app.__name__.fsm:
+    tags: [ztest, smf]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

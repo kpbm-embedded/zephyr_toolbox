@@ -1,0 +1,6 @@
+board:
+  name: opi_zero2
+  full_name: Orange Pi Zero2 (H616) / H616-H618 core boards
+  vendor: xunlong
+  socs:
+  - name: sun50i_h616

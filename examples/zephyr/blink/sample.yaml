@@ -1,0 +1,16 @@
+# twister entries for the application-SoC boards (32_03_zephyr BOARDS.md); MCU targets: example.toml
+sample:
+  name: blink
+tests:
+  soc_ports.blink:
+    build_only: true
+    tags: soc_ports
+    platform_allow:
+      - nanopi_neo
+      - nanopi_duo2
+      - opi_zero2
+      - mangopi_mq_r
+      - luckfox_pico_mini
+      - luckfox_lyra
+      - milkv_duo
+      - stm32mp135f_dk

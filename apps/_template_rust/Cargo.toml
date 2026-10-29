@@ -1,0 +1,19 @@
+[package]
+# zephyr-lang-rust links the crate named rustapp
+name = "rustapp"
+version = "0.1.0"
+edition = "2021"
+description = "__name__: Zephyr app in Rust"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+zephyr = "0.1.0"
+zephyr-panic = "0.1.0"
+
+[profile.release]
+debug-assertions = true
+overflow-checks = true
+debug = true

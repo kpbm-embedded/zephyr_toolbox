@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+description: |
+  T-Head C906/C908 CLINT machine timer: mtimecmp registers (reg-names "mtimecmp",
+  one 64-bit slot per hart, written as two 32-bit halves); mtime is read via the
+  time CSR. Driver: ports/drivers/timer/thead_clint_timer.c.
+
+compatible: "thead,c900-clint-mtimer"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+  reg-names:
+    required: true
+  interrupts-extended:
+    required: true

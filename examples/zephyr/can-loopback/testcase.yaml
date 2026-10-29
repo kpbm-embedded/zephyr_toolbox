@@ -1,0 +1,10 @@
+# twister: scripts/app ztest can-loopback [board]
+common:
+  tags: [ztest, can]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.can.loopback: {}

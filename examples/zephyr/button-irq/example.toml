@@ -1,0 +1,7 @@
+name        = "button-irq"
+sdk         = "zephyr"
+description = "GPIO edge interrupt on sw0 toggles led0"
+targets     = ["blackpill_f411ce", "weact_g431", "weact_h562", "weact_h743"]
+hardware    = "sw0/led0 per board DTS: BlackPill KEY PA0 / PC13, G431 PC13 / PC6, H562 PC13 / PB2, H743 PC13 / PE3"
+features    = ["gpio", "interrupt", "callback"]
+status      = "builds; untested on hardware"

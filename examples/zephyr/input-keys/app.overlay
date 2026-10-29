@@ -1,0 +1,34 @@
+/* Buttons as gpio-keys (Zephyr's input driver: interrupt + debounce -> input events) on an emulated
+ * GPIO controller, so a test can "press" them. On a board use its real GPIO: BlackPill KEY = PA0
+ * (<&gpioa 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>).
+ */
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	gpio_emul0: gpio-emul {
+		compatible = "zephyr,gpio-emul";
+		gpio-controller;
+		#gpio-cells = <2>;
+		ngpios = <8>;
+		rising-edge;
+		falling-edge;
+		high-level;
+		low-level;
+		status = "okay";
+	};
+
+	buttons: buttons {
+		compatible = "gpio-keys";
+		debounce-interval-ms = <10>;
+
+		button_ok: button-ok {
+			gpios = <&gpio_emul0 0 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_ENTER>;
+		};
+		button_back: button-back {
+			gpios = <&gpio_emul0 1 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_BACK>;
+		};
+	};
+};

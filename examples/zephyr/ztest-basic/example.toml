@@ -1,0 +1,7 @@
+name        = "ztest-basic"
+sdk         = "zephyr"
+description = "ztest suite for a small FIFO module: fixtures, zassert/zexpect, skip, shuffle; runs under twister on qemu"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); on a board the result is printed on the console UART"
+features    = ["ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

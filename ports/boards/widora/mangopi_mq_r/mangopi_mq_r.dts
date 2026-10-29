@@ -1,0 +1,49 @@
+/*
+ * MangoPi MQ-R (T113-S3) - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <arm/allwinner/sun8i-t113.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "MangoPi MQ-R (T113-S3)";
+	compatible = "widora,mangopi-mq-r-t113", "allwinner,sun8i-t113s";
+
+	chosen {
+		zephyr,console = &uart3;
+		zephyr,shell-uart = &uart3;
+		zephyr,sram = &dram0;
+	};
+
+	aliases {
+		led0 = &led0;
+	};
+
+	dram0: memory@40000000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x40000000 DT_SIZE_M(64)>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led_0 {
+			gpios = <&gpiod 22 GPIO_ACTIVE_LOW>;
+			label = "PD22 blue status LED (active low)";
+		};
+	};
+};
+
+&uart3 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&gpiod {
+	status = "okay";
+};
+

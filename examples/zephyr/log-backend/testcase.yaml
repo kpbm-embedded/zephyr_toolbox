@@ -1,0 +1,10 @@
+# twister: scripts/app ztest log-backend [board]
+common:
+  tags: [ztest, logging]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.logging.backend: {}

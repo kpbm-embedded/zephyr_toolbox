@@ -1,0 +1,10 @@
+identifier: k230d_bpi_zero
+name: Banana Pi BPI-CanMV-K230D-Zero (K230D, 128 MB), CPU0
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 131072
+supported:
+  - uart
+vendor: canaan

@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SERIES_SUN50I
+	bool
+
+config SOC_SUN50I_H616
+	bool
+	select SOC_SERIES_SUN50I
+
+config SOC_SERIES
+	default "sun50i" if SOC_SERIES_SUN50I
+
+config SOC
+	default "sun50i_h616" if SOC_SUN50I_H616

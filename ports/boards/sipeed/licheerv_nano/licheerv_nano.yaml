@@ -1,0 +1,10 @@
+identifier: licheerv_nano
+name: Sipeed LicheeRV Nano (SG2002), little C906 core
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 262144
+supported:
+  - uart
+vendor: sipeed

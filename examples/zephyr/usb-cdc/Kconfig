@@ -1,0 +1,4 @@
+# Pulls in the sample USB device options (CONFIG_SAMPLE_USBD_*) from the Zephyr tree
+source "$(ZEPHYR_BASE)/samples/subsys/usb/common/Kconfig.sample_usbd"
+
+source "Kconfig.zephyr"

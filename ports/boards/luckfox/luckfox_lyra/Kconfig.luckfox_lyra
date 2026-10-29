@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
+config BOARD_LUCKFOX_LYRA
+	select SOC_RK3506

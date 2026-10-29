@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+description: Canaan Kendryte K210 RV64GC core (privileged spec 1.9.1)
+
+compatible: "canaan,k210"
+
+include: riscv-common.yaml

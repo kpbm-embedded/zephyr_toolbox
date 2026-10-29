@@ -1,0 +1,7 @@
+name        = "threads-msgq"
+sdk         = "zephyr"
+description = "Two threads exchanging data through a message queue, with a mutex-protected counter"
+targets     = ["blackpill_f411ce", "rpi_pico2", "promicro_nrf52840", "esp32c3", "esp32s3"]
+hardware    = "none (console UART only)"
+features    = ["threads", "k_msgq", "k_mutex"]
+status      = "builds; untested on hardware"

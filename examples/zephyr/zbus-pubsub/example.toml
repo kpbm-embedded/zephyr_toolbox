@@ -1,0 +1,7 @@
+name        = "zbus-pubsub"
+sdk         = "zephyr"
+description = "zbus pub/sub: a channel with a validator, a listener, a subscriber thread, a message subscriber and a runtime observer; ztest checks delivery"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); on a board the result is printed on the console UART"
+features    = ["zbus", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

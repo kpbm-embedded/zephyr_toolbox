@@ -1,0 +1,192 @@
+/*
+ * Allwinner T113-S3 (sun8iw20, 2x Cortex-A7 + HiFi4 DSP; same peripheral map as D1/D1s).
+ * Facts from Linux sun8i-t113s.dtsi / sunxi-d1s-t113.dtsi: GIC-400 at 0x03021000,
+ * UARTs 0x02500000 + n*0x400 (SPI 2+n), PIO 0x02000000 with banks 0x30 apart
+ * (pull regs at +0x24), arch timer 24 MHz, DRAM at 0x40000000.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+
+#include <arm/armv7-a.dtsi>
+#include <zephyr/dt-bindings/interrupt-controller/arm-gic.h>
+
+/ {
+	interrupt-parent = <&gic>;
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "arm,cortex-a7";
+			device_type = "cpu";
+			reg = <0>;
+			clock-frequency = <DT_FREQ_M(1008)>;
+		};
+
+		cpu1: cpu@1 {
+			compatible = "arm,cortex-a7";
+			device_type = "cpu";
+			reg = <1>;
+		};
+	};
+
+	arch_timer: timer {
+		compatible = "arm,armv8-timer";
+		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
+			     <GIC_PPI 14 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
+			     <GIC_PPI 11 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>,
+			     <GIC_PPI 10 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+		interrupt-parent = <&gic>;
+		clock-frequency = <DT_FREQ_M(24)>;
+		status = "okay";
+	};
+
+	soc {
+		compatible = "allwinner,sun8i-t113s", "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		gic: interrupt-controller@3021000 {
+			compatible = "arm,gic-400", "arm,gic-v2", "arm,gic";
+			reg = <0x03021000 0x1000>,
+			      <0x03022000 0x2000>;
+			interrupt-controller;
+			#interrupt-cells = <4>;
+			#address-cells = <0>;
+			status = "okay";
+		};
+
+		uart0: uart@2500000 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2500000 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		uart1: uart@2500400 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2500400 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		uart2: uart@2500800 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2500800 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		uart3: uart@2500c00 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2500c00 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 5 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		uart4: uart@2501000 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2501000 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 6 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		uart5: uart@2501400 {
+			compatible = "ns16550", "snps,dw-apb-uart";
+			reg = <0x2501400 0x400>;
+			reg-shift = <2>;
+			interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			clock-frequency = <DT_FREQ_M(24)>;
+			status = "disabled";
+		};
+
+		gpiob: gpio@2000030 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x2000030 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <1>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+		gpioc: gpio@2000060 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x2000060 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 71 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <2>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+		gpiod: gpio@2000090 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x2000090 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 73 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <3>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+		gpioe: gpio@20000c0 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x20000c0 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 75 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <4>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+		gpiof: gpio@20000f0 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x20000f0 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <5>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+		gpiog: gpio@2000120 {
+			compatible = "allwinner,sun8i-t113-gpio", "allwinner,sunxi-gpio";
+			reg = <0x2000120 0x30>, <0x02000000 0x800>;
+			reg-names = "reg_base", "pio_base";
+			gpio-controller;
+			#gpio-cells = <2>;
+			interrupts = <GIC_SPI 79 IRQ_TYPE_LEVEL IRQ_DEFAULT_PRIORITY>;
+			allwinner,hw-bank = <6>;
+			allwinner,pull-offset = <0x24>;
+			status = "disabled";
+		};
+
+	};
+};

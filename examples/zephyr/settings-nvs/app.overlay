@@ -1,0 +1,34 @@
+/* A RAM-backed flash (flash simulator) with one 16 KiB partition for settings/NVS, so the
+ * example runs on qemu. On a real board drop this file: most board DTS files already have a
+ * storage_partition in internal flash (BlackPill F411: sector 1, WeAct G431: last 8 KiB).
+ */
+/ {
+	chosen {
+		zephyr,settings-partition = &storage_partition;
+	};
+
+	sim_flash_controller: sim_flash_controller {
+		compatible = "zephyr,sim-flash";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		erase-value = <0xff>;
+
+		flash_sim0: flash_sim@0 {
+			compatible = "soc-nv-flash";
+			reg = <0x00000000 0x4000>;
+			erase-block-size = <1024>;
+			write-block-size = <4>;
+
+			partitions {
+				compatible = "fixed-partitions";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				storage_partition: partition@0 {
+					label = "storage";
+					reg = <0x00000000 0x4000>;
+				};
+			};
+		};
+	};
+};

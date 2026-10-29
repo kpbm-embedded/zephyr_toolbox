@@ -1,0 +1,7 @@
+name        = "zig-ffi"
+sdk         = "zephyr"
+description = "Zig in a C Zephyr app: zig build-obj (32_24_microzig's zig 0.17) for the board's CPU, C ABI exports, extern struct shared with C; Q16.16 math, Fletcher-16, moving average; ztest"
+targets     = ["qemu_cortex_m3"]
+hardware    = "none (qemu_cortex_m3, qemu_riscv32); needs 32_24_microzig; exit 3 (skip) when missing"
+features    = ["zig", "ffi", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

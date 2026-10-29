@@ -1,0 +1,11 @@
+identifier: nanopi_duo2
+name: FriendlyElec NanoPi Duo2 (H3)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 524288
+supported:
+  - uart
+  - gpio
+vendor: friendlyelec

@@ -1,0 +1,7 @@
+name        = "input-keys"
+sdk         = "zephyr"
+description = "Input subsystem: gpio-keys buttons (interrupt + debounce) on an emulated GPIO controller, an input callback driving menu logic, software key events; ztest presses the keys"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu, GPIO emulator); on a board map the buttons to real pins"
+features    = ["input", "gpio", "emul", "devicetree", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

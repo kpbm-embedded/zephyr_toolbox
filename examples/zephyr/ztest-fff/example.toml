@@ -1,0 +1,7 @@
+name        = "ztest-fff"
+sdk         = "zephyr"
+description = "ztest with FFF fakes: a sensor-averaging module tested with its hardware read faked (return sequences, custom fakes, call counts)"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu)"
+features    = ["ztest", "fff", "twister"]
+status      = "passes on qemu_cortex_m3 (scripts/app ztest)"

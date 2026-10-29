@@ -1,0 +1,6 @@
+board:
+  name: luckfox_pico_mini
+  full_name: Luckfox Pico Mini A/B (RV1103)
+  vendor: luckfox
+  socs:
+  - name: rv1106

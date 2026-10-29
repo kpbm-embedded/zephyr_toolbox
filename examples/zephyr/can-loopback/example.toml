@@ -1,0 +1,7 @@
+name        = "can-loopback"
+sdk         = "zephyr"
+description = "CAN without a transceiver: Zephyr's loopback CAN controller, mask filters to a message queue, extended IDs, async send callback, bus state; a small status-frame protocol tested on top"
+targets     = ["weact_g431"]
+hardware    = "none (qemu, CAN loopback driver); on a board use its FDCAN + a transceiver"
+features    = ["can", "devicetree", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

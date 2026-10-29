@@ -1,0 +1,10 @@
+/* extra overlay for the twister variant examples.dt_kconfig.overlay (EXTRA_DTC_OVERLAY_FILE) */
+/ {
+	zone_server: zone-server {
+		compatible = "acme,thermostat";
+		zone-name = "server";
+		setpoint-mdeg = <24000>;
+		hysteresis-mdeg = <250>;
+		mode = "cool";
+	};
+};

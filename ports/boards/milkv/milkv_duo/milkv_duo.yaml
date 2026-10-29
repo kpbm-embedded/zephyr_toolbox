@@ -1,0 +1,11 @@
+identifier: milkv_duo
+name: Milk-V Duo 64M (CV1800B), little C906 core
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 65536
+supported:
+  - uart
+  - gpio
+vendor: milkv

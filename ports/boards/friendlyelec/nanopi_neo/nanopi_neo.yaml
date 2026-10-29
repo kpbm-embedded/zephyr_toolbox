@@ -1,0 +1,11 @@
+identifier: nanopi_neo
+name: FriendlyElec NanoPi NEO (H3)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 262144
+supported:
+  - uart
+  - gpio
+vendor: friendlyelec

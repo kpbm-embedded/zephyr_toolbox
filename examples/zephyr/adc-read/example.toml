@@ -1,0 +1,7 @@
+name        = "adc-read"
+sdk         = "zephyr"
+description = "Read one ADC channel (zephyr,user io-channels) and print raw and millivolts"
+targets     = ["blackpill_f411ce", "rpi_pico", "rpi_pico2", "ch32v003"]
+hardware    = "BlackPill PA1; Pico/Pico 2 channel 0 = GP26 (adc_default pinctrl); CH32V003 channel 0 = PA2 (sample overlay)"
+features    = ["adc"]
+status      = "builds; untested on hardware"

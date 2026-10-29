@@ -1,0 +1,10 @@
+# twister: scripts/app ztest littlefs-flashsim [board]
+common:
+  tags: [ztest, filesystem, littlefs, flash]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.fs.littlefs_flashsim: {}

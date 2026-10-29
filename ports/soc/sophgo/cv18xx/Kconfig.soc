@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+config SOC_SERIES_CV18XX
+	bool
+
+config SOC_SERIES
+	default "cv18xx" if SOC_SERIES_CV18XX
+
+config SOC_CV1800B
+	bool
+	select SOC_SERIES_CV18XX
+
+config SOC
+	default "cv1800b" if SOC_CV1800B
+
+config SOC_SG2002
+	bool
+	select SOC_SERIES_CV18XX
+
+config SOC
+	default "sg2002" if SOC_SG2002

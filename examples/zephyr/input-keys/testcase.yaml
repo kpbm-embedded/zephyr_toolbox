@@ -1,0 +1,10 @@
+# twister: scripts/app ztest input-keys [board]
+common:
+  tags: [ztest, input, gpio, emul]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.input.keys: {}

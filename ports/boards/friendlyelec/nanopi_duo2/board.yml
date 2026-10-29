@@ -1,0 +1,6 @@
+board:
+  name: nanopi_duo2
+  full_name: FriendlyElec NanoPi Duo2 (H3)
+  vendor: friendlyelec
+  socs:
+  - name: sun8i_h3

@@ -1,0 +1,6 @@
+board:
+  name: k230d_bpi_zero
+  full_name: Banana Pi BPI-CanMV-K230D-Zero (K230D, 128 MB), CPU0
+  vendor: canaan
+  socs:
+  - name: k230

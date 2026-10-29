@@ -1,0 +1,10 @@
+# Out-of-tree Zephyr module for the application SoCs of this ID (32_03_zephyr).
+# Used via ZEPHYR_EXTRA_MODULES=<this ID>/ports (scripts/app sets it; the app templates' CMakeLists.txt too).
+name: soc_ports
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    board_root: .
+    soc_root: .
+    dts_root: .

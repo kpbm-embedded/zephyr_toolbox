@@ -1,0 +1,49 @@
+/*
+ * Orange Pi Zero2 (H616) / H616-H618 core boards - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <arm64/allwinner/sun50i-h616.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Orange Pi Zero2 (H616) / H616-H618 core boards";
+	compatible = "xunlong,orangepi-zero2", "allwinner,sun50i-h616";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &dram0;
+	};
+
+	aliases {
+		led0 = &led0;
+	};
+
+	dram0: memory@40080000 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x40080000 DT_SIZE_M(511)>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led_0 {
+			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+			label = "PC13 green status LED";
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&gpioc {
+	status = "okay";
+};
+

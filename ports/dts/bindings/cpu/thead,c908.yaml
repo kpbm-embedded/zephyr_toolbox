@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+description: T-Head c908 RISC-V core
+
+compatible: "thead,c908"
+
+include: riscv-common.yaml

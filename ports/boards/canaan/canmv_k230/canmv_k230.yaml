@@ -1,0 +1,10 @@
+identifier: canmv_k230
+name: CanMV-K230 class boards (K230, 01Studio/Canaan), CPU0
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+ram: 524288
+supported:
+  - uart
+vendor: canaan

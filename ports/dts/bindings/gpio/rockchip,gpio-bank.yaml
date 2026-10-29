@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: Apache-2.0
+description: |
+  Rockchip GPIO v2 bank (RV1106/RV1103, RK3506, RK3568, RK3588). Driver:
+  ports/drivers/gpio/gpio_rockchip_v2.c (output/input only, no pinmux, no IRQ).
+
+compatible: "rockchip,gpio-bank"
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+gpio-cells:
+  - pin
+  - flags

@@ -1,0 +1,22 @@
+/* qemu: an emulated I2C bus with a Fintek F75303 (driver + emulator in Zephyr) as ambient-temp0 */
+#include <zephyr/dt-bindings/i2c/i2c.h>
+
+/ {
+	aliases {
+		ambient-temp0 = &temp;
+	};
+
+	i2c_emul: i2c@7fff0000 {
+		compatible = "zephyr,i2c-emul-controller";
+		reg = <0x7fff0000 0x4>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		clock-frequency = <I2C_BITRATE_STANDARD>;
+		status = "okay";
+
+		temp: f75303@4c {
+			compatible = "fintek,f75303";
+			reg = <0x4c>;
+		};
+	};
+};

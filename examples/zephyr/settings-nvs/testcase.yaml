@@ -1,0 +1,10 @@
+# twister: scripts/app ztest settings-nvs [board]
+common:
+  tags: [ztest, settings, nvs, flash]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.settings.nvs: {}

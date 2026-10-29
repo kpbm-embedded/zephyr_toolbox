@@ -1,0 +1,7 @@
+name        = "smf-pump"
+sdk         = "zephyr"
+description = "State Machine Framework: a hierarchical pump controller (parent state, initial transition, event propagation, terminate); ztest checks the entry/exit order"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); pure logic, runs the same on any board"
+features    = ["smf", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

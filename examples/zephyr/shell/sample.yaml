@@ -1,0 +1,31 @@
+# twister entries for the application-SoC boards (32_03_zephyr BOARDS.md); MCU targets: example.toml
+sample:
+  name: shell
+tests:
+  soc_ports.shell:
+    build_only: true
+    tags: soc_ports
+    platform_allow:
+      - nanopi_neo
+      - nanopi_duo2
+      - opi_zero2
+      - mangopi_mq_r
+      - luckfox_pico_mini
+      - luckfox_lyra
+      - milkv_duo
+      - licheerv_nano
+      - stm32mp135f_dk
+      - k210_generic
+      - canmv_k230
+      - k230d_bpi_zero
+  soc_ports.shell.qemu:
+    tags: soc_ports
+    platform_allow:
+      - qemu_cortex_a9
+      - qemu_cortex_a53
+      - qemu_riscv64
+    harness: console
+    harness_config:
+      type: one_line
+      regex:
+        - "Booting Zephyr OS"   # the prompt has no newline; commands are checked by feeding stdin (BOARDS.md)

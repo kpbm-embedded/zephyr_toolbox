@@ -1,0 +1,2 @@
+# module root (zephyr/module.yml: kconfig: Kconfig)
+rsource "drivers/Kconfig"

@@ -1,0 +1,9 @@
+# scripts/app ztest <app> [board]   (qemu boards: boards/qemu_*.overlay adds the emulated sensor)
+tests:
+  app.__name__.temp:
+    tags: [ztest, sensor, emul]
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

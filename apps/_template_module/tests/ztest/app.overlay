@@ -1,0 +1,12 @@
+/ {
+	tally_a: tally-a {
+		compatible = "acme,tally";
+		threshold = <10>;
+	};
+
+	tally_b: tally-b {
+		compatible = "acme,tally";
+		threshold = <3>;
+		initial = <100>;
+	};
+};

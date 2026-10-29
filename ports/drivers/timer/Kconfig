@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config THEAD_CLINT_TIMER
+	bool "T-Head C9xx CLINT machine timer (mtime via time CSR)"
+	default y
+	depends on DT_HAS_THEAD_C900_CLINT_MTIMER_ENABLED
+	select TICKLESS_CAPABLE
+	select TIMER_HAS_64BIT_CYCLE_COUNTER
+	help
+	  System timer for T-Head C906/C908 (Sophgo CV18xx, Canaan K230):
+	  the CLINT has mtimecmp (32-bit halves) but no memory-mapped mtime;
+	  the counter is read with the time CSR. Derived from Zephyr's
+	  riscv_machine_timer.c.

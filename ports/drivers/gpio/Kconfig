@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config GPIO_ALLWINNER
+	bool "Allwinner sunxi GPIO (backport of Zephyr main drivers/gpio/gpio_allwinner.c)"
+	default y
+	depends on DT_HAS_ALLWINNER_SUNXI_GPIO_ENABLED
+	help
+	  Allwinner PIO driver for H3, H616/H618 and T113 (D1 layout via
+	  the allwinner,pull-offset property). Remove this copy when the
+	  Zephyr tree is >= 4.5 (it ships the same driver).
+
+config GPIO_ROCKCHIP_V2
+	bool "Rockchip GPIO v2 (rockchip,gpio-bank)"
+	default y
+	depends on DT_HAS_ROCKCHIP_GPIO_BANK_ENABLED
+	help
+	  Minimal driver for the Rockchip GPIO v2 block (RV1106/RV1103,
+	  RK3506, RK3568, RK3588): direction and data registers with
+	  write-enable masks. No interrupts, no pinmux (pins must already be
+	  in GPIO function, which is the reset default for most pins).

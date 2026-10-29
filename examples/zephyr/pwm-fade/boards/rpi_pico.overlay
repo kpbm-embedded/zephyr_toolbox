@@ -1,0 +1,3 @@
+/* From zephyr samples/basic/fade_led/boards/rpi_pico.overlay: the on-board LED (GP25) is PWM channel 4B. */
+/ { pwm_leds { status = "okay"; }; };
+&pwm { status = "okay"; divider-int-4 = <255>; };

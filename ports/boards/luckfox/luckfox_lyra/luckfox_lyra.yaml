@@ -1,0 +1,11 @@
+identifier: luckfox_lyra
+name: Luckfox Lyra / Lyra Plus (RK3506G2)
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+ram: 131072
+supported:
+  - uart
+  - gpio
+vendor: luckfox

@@ -1,0 +1,52 @@
+/*
+ * Luckfox Pico Mini A/B (RV1103) - out-of-tree board of 32_03_zephyr/ports. See README.md here.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <arm/rockchip/rv1106.dtsi>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "Luckfox Pico Mini A/B (RV1103)";
+	compatible = "luckfox,pico-mini", "rockchip,rv1103";
+
+	chosen {
+		zephyr,console = &uart2;
+		zephyr,shell-uart = &uart2;
+		zephyr,sram = &ddr;
+	};
+
+	aliases {
+		led0 = &led0;
+	};
+
+	ddr: memory@0 {
+		device_type = "memory";
+		compatible = "mmio-sram";
+		reg = <0x0 DT_SIZE_M(64)>;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led0: led_0 {
+			gpios = <&gpio3 22 GPIO_ACTIVE_HIGH>;
+			label = "GPIO3_C6 work LED";
+		};
+	};
+};
+
+&uart2 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&gpio3 {
+	status = "okay";
+};
+
+&cpu0 {
+	clock-frequency = <DT_FREQ_M(1200)>;
+};

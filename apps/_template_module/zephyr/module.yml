@@ -1,0 +1,6 @@
+name: __name__
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    dts_root: .

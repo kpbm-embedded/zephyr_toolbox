@@ -1,0 +1,13 @@
+# twister: scripts/app ztest pytest-shell [board]   (harness: pytest runs pytest/ against the booted image)
+tests:
+  examples.pytest.shell:
+    tags: [pytest, shell]
+    harness: pytest
+    harness_config:
+      pytest_root:
+        - pytest/test_shell.py
+    integration_platforms:
+      - qemu_cortex_m3
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_riscv32

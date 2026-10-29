@@ -1,0 +1,10 @@
+# twister: scripts/app ztest rust-ffi [board]   (needs 32_17_embedded_rust: cargo + thumbv7m/riscv32imac targets)
+common:
+  tags: [ztest, rust]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.rust.ffi: {}

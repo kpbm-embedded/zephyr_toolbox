@@ -1,0 +1,107 @@
+/*
+ * Canaan Kendryte K230 / K230D: CPU0 = T-Head C908 (the hart U-Boot runs on), M-mode.
+ * Based on the unmerged Zephyr PR #74169 (Copyright (c) 2024 Junhui Liu, Apache-2.0) and
+ * Linux k230.dtsi: PLIC 0xF_0000_0000 (208 sources), CLINT 0xF_0400_0000 (mtimecmp at
+ * +0x4000, 27 MHz, mtime via time CSR), UART0-4 0x91400000 + n*0x1000 (16550, 50 MHz),
+ * GPIO0/1 0x9140B000/0x9140C000 (DesignWare). DDR at 0x0.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <mem.h>
+#include <freq.h>
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+	compatible = "canaan,kendryte-k230";
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu0: cpu@0 {
+			compatible = "thead,c908", "riscv";
+			device_type = "cpu";
+			reg = <0>;
+			clock-frequency = <DT_FREQ_M(800)>;
+			riscv,isa-base = "rv64i";
+			riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "zicsr", "zifencei";
+
+			cpu0_intc: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
+		};
+	};
+
+	soc {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		compatible = "canaan,k230-soc", "simple-bus";
+		interrupt-parent = <&plic>;
+		ranges;
+
+		plic: interrupt-controller@f00000000 {
+			compatible = "sifive,plic-1.0.0";
+			reg = <0xf 0x00000000 0x0 0x04000000>;
+			interrupt-controller;
+			interrupts-extended = <&cpu0_intc 11>;
+			#address-cells = <0>;
+			#interrupt-cells = <2>;
+			riscv,max-priority = <7>;
+			riscv,ndev = <208>;
+		};
+
+		mtimer: timer@f04004000 {
+			compatible = "thead,c900-clint-mtimer";
+			reg = <0xf 0x04004000 0x0 0x8>;
+			reg-names = "mtimecmp";
+			interrupts-extended = <&cpu0_intc 7>;
+		};
+
+		gpio0: gpio@9140b000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x0 0x9140b000 0x0 0x1000>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		gpio1: gpio@9140c000 {
+			compatible = "snps,designware-gpio";
+			reg = <0x0 0x9140c000 0x0 0x1000>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			status = "disabled";
+		};
+
+		uart0: serial@91400000 {
+			compatible = "ns16550";
+			reg = <0x0 0x91400000 0x0 0x1000>;
+			interrupts = <16 1>;
+			reg-shift = <2>;
+			clock-frequency = <DT_FREQ_M(50)>;
+			status = "disabled";
+		};
+
+		uart1: serial@91401000 {
+			compatible = "ns16550";
+			reg = <0x0 0x91401000 0x0 0x1000>;
+			interrupts = <17 1>;
+			reg-shift = <2>;
+			clock-frequency = <DT_FREQ_M(50)>;
+			status = "disabled";
+		};
+
+		uart3: serial@91403000 {
+			compatible = "ns16550";
+			reg = <0x0 0x91403000 0x0 0x1000>;
+			interrupts = <19 1>;
+			reg-shift = <2>;
+			clock-frequency = <DT_FREQ_M(50)>;
+			status = "disabled";
+		};
+	};
+};

@@ -1,0 +1,7 @@
+name        = "dt-kconfig"
+sdk         = "zephyr"
+description = "App configuration: an app-local devicetree binding, overlays, disabled nodes, a table built with DT_INST_FOREACH_STATUS_OKAY, app Kconfig options, a Kconfig default from devicetree; three twister variants"
+targets     = ["blackpill_f411ce"]
+hardware    = "none (qemu); configuration only"
+features    = ["devicetree", "kconfig", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest, 3 variants)"

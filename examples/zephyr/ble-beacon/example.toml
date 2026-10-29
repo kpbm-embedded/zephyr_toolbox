@@ -1,0 +1,7 @@
+name        = "ble-beacon"
+sdk         = "zephyr"
+description = "Non-connectable BLE Eddystone-URL beacon"
+targets     = ["promicro_nrf52840", "esp32c3"]
+hardware    = "On-chip radio (nRF52840 Pro Micro, ESP32-C3); view with a phone BLE scanner"
+features    = ["bluetooth", "advertising"]
+status      = "builds; untested on hardware"

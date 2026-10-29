@@ -1,0 +1,17 @@
+# twister: scripts/app ztest dt-kconfig [board]   (three variants of one source: Kconfig and DT overlays)
+common:
+  tags: [ztest, devicetree, kconfig]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.dt_kconfig.default: {}
+  examples.dt_kconfig.fast:
+    extra_configs:
+      - CONFIG_APP_SAMPLE_PERIOD_MS=250
+  examples.dt_kconfig.overlay:
+    extra_args: EXTRA_DTC_OVERLAY_FILE=third.overlay
+    extra_configs:
+      - CONFIG_APP_EXPECT_ZONES=3

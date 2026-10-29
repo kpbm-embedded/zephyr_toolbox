@@ -1,0 +1,4 @@
+series:
+- name: sun50i
+  socs:
+  - name: sun50i_h616

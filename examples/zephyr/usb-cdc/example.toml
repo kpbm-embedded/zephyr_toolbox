@@ -1,0 +1,7 @@
+name        = "usb-cdc"
+sdk         = "zephyr"
+description = "USB device CDC ACM serial port that echoes input (new USB device stack)"
+targets     = ["blackpill_f411ce", "weact_g431", "weact_h743", "rpi_pico", "rpi_pico2", "promicro_nrf52840"]
+hardware    = "USB-C/micro-USB data port: BlackPill PA11/PA12, G431 PA11/PA12, H743 PA11/PA12 (zephyr_udc0 in each board DTS); appears as /dev/ttyACM*"
+features    = ["usb", "cdc-acm"]
+status      = "builds; untested on hardware"

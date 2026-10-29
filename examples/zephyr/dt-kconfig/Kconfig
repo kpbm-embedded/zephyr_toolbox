@@ -1,0 +1,26 @@
+# App options: set in prj.conf, a board's boards/<board>.conf, or -DCONFIG_...=... / twister extra_configs.
+mainmenu "dt-kconfig example"
+
+menu "Application"
+
+config APP_SAMPLE_PERIOD_MS
+	int "Sampling period (ms)"
+	range 10 60000
+	default 1000
+
+config APP_VERBOSE
+	bool "Print every sample"
+
+config APP_ZONE_SERVER
+	bool "Zone server (enabled when the devicetree has a zone_server node)"
+	default $(dt_nodelabel_enabled,zone_server)
+	help
+	  Kconfig derived from devicetree: y only when third.overlay (or a board overlay) adds the node.
+
+config APP_EXPECT_ZONES
+	int "Zones the test expects (test-only)"
+	default 2
+
+endmenu
+
+source "Kconfig.zephyr"

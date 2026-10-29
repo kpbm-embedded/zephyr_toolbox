@@ -1,0 +1,10 @@
+# twister: scripts/app ztest workq-timers [board]
+common:
+  tags: [ztest, kernel, workqueue, timer]
+  integration_platforms:
+    - qemu_cortex_m3
+  platform_allow:
+    - qemu_cortex_m3
+    - qemu_riscv32
+tests:
+  examples.kernel.workq_timers: {}

@@ -1,0 +1,20 @@
+[package]
+# zephyr-lang-rust links the crate named rustapp
+name = "rustapp"
+version = "0.1.0"
+edition = "2021"
+description = "Rust on Zephyr: a worker thread, bounded channels, a CRC check"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+# patched to modules/lang-rust by rust_cargo_application(); versions locked in Cargo.lock
+zephyr = "0.1.0"
+zephyr-panic = "0.1.0"
+
+[profile.release]
+debug-assertions = true
+overflow-checks = true
+debug = true

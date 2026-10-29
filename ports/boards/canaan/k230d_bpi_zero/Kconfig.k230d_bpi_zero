@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
+config BOARD_K230D_BPI_ZERO
+	select SOC_K230

@@ -1,0 +1,7 @@
+name        = "rust-ffi"
+sdk         = "zephyr"
+description = "no_std Rust static library over the C ABI in a C Zephyr app (no zephyr-lang-rust): cargo from 32_17_embedded_rust, repr(C) struct shared with C, panic handler into k_panic; ztest"
+targets     = ["qemu_cortex_m3"]
+hardware    = "none (qemu_cortex_m3, qemu_riscv32); needs 32_17_embedded_rust; exit 3 (skip) when missing"
+features    = ["rust", "ffi", "ztest", "twister"]
+status      = "passes on qemu_cortex_m3, qemu_riscv32 (scripts/app ztest)"

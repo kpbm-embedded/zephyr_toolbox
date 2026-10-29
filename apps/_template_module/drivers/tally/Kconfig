@@ -1,0 +1,11 @@
+config TALLY
+	bool "Tally event counter (acme,tally)"
+	default y
+	depends on DT_HAS_ACME_TALLY_ENABLED
+	help
+	  Enabled automatically when the devicetree has an enabled acme,tally node.
+
+config TALLY_INIT_PRIORITY
+	int "Tally init priority"
+	default 50
+	depends on TALLY
