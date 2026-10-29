@@ -140,8 +140,8 @@ else the sibling folder. Missing -> the command exits 3 (skip) and says what to 
 `scripts/app setup` (step rust) into `modules/lang-rust`, outside the west workspace. Rust on qemu_riscv32 with
 zephyr-lang-rust needs riscv32i-unknown-none-elf, which 32_17 does not install (rust-ffi uses riscv32imac and runs).
 Bend: not supported here: Bend 2 emits C for a hosted POSIX system (pthreads, mmap, 64-bit terms), with no
-bare-metal target, so it cannot run inside a Zephyr image on these MCUs or qemu boards; Bend proofs/host tools belong
-to 32_31_bend (`bend-box`, `$BOX_BEND`), not to this ID.
+bare-metal target, so it cannot run inside a Zephyr image on these MCUs or qemu boards; host-side Bend checks of
+firmware logic live in the tools where they fit (e.g. 32_01_mcu `bend-host-check`, 32_20_testing), not in this ID.
 
 More: Robot Framework tests (qemu, Renode, serial) and twister's `harness: robot`: `32_30_robot_framework`
 (`robot-box zephyr ...`). Debugger: `scripts/app debug <app|example> [board]`. By hand: `west build -b <board> -d <dir> <src>`

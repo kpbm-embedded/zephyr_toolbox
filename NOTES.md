@@ -67,4 +67,4 @@
 - Repo name: zephyr_toolbox. Fresh-clone check of 9ddd81c (clone on idisk03, downloads from the shared cache/, west
   modules via ZEPHYR_WEST_CACHE, BOX_INTEGRATION=0, output in the clone): setup OK (all 7 steps), doctor all ok, Rust/Zig
   examples without BOX_EMBEDDED_RUST/BOX_MICROZIG skip (exit 3, 4/4), smoke 26/26, examples 31/31 (185 cases),
-  templates 60/60. Bend (32_31_bend now exists): still no example here, its C output needs a hosted POSIX system.
+  templates 60/60. Bend: still no example here, its C output needs a hosted POSIX system.
