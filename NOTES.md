@@ -64,3 +64,7 @@
   qemu_cortex_m3/qemu_riscv32, rust-app riscv32 n/a), 185 test cases passed; templates 60/60 steps (16 templates: new,
   no __name__ left, tests, build). `_template_soc` failed outside apps/ (../../ports missing): the path is now only added
   when it exists (scripts/app exports ports/ anyway). No board attached: nothing ran on hardware.
+- Repo name: zephyr_toolbox. Fresh-clone check of 9ddd81c (clone on idisk03, downloads from the shared cache/, west
+  modules via ZEPHYR_WEST_CACHE, BOX_INTEGRATION=0, output in the clone): setup OK (all 7 steps), doctor all ok, Rust/Zig
+  examples without BOX_EMBEDDED_RUST/BOX_MICROZIG skip (exit 3, 4/4), smoke 26/26, examples 31/31 (185 cases),
+  templates 60/60. Bend (32_31_bend now exists): still no example here, its C output needs a hosted POSIX system.

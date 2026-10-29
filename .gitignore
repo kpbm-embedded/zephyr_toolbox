@@ -1,4 +1,4 @@
-# zephyr-box: only sources go into git. Everything below is downloaded, installed or built again by
+# zephyr_toolbox: only sources go into git. Everything below is downloaded, installed or built again by
 # scripts/app setup (pins and sha256 in scripts/setup and scripts/requirements.lock) and scripts/app build|ztest|...
 /build/
 /cache/

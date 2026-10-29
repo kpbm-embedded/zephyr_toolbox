@@ -28,7 +28,7 @@ Boards built: BlackPill F411, WeAct G431/H562/H743, Pico/Pico 2, nRF52840 Pro Mi
 ## Fresh clone
 
 ```sh
-git clone <repo> zephyr-box && cd zephyr-box
+git clone <repo> zephyr_toolbox && cd zephyr_toolbox
 scripts/app setup            # ~4 GB download, ~11 GB installed under toolchain/ (all gitignored); rerun to finish
 scripts/app doctor           # tools, versions, venv
 tests/smoke.sh && tests/examples.sh && tests/templates.sh
@@ -141,7 +141,7 @@ else the sibling folder. Missing -> the command exits 3 (skip) and says what to 
 zephyr-lang-rust needs riscv32i-unknown-none-elf, which 32_17 does not install (rust-ffi uses riscv32imac and runs).
 Bend: not supported here: Bend 2 emits C for a hosted POSIX system (pthreads, mmap, 64-bit terms), with no
 bare-metal target, so it cannot run inside a Zephyr image on these MCUs or qemu boards; Bend proofs/host tools belong
-to 32_31_bend.
+to 32_31_bend (`bend-box`, `$BOX_BEND`), not to this ID.
 
 More: Robot Framework tests (qemu, Renode, serial) and twister's `harness: robot`: `32_30_robot_framework`
 (`robot-box zephyr ...`). Debugger: `scripts/app debug <app|example> [board]`. By hand: `west build -b <board> -d <dir> <src>`
